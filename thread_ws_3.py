@@ -3,7 +3,7 @@ from utils import *
 
 
 
-def main_thread_1(msg):
+def main_thread_3(msg):
     BROWSER=returnChromeSettings()
     BROWSER.get('https://mvnrepository.com/')
     for x in range(1,10):
@@ -15,4 +15,4 @@ def main_thread_1(msg):
 
 
 if __name__ == "__main__":
-    main_thread_1()    
+    main_thread_3()    
