@@ -4,14 +4,14 @@ import chromedriver_autoinstaller
 from selenium.webdriver.chrome.options import Options
 from InternalControl import *
 
-'https://cryptonews.com/',
-'https://finance.yahoo.com/',
-'https://www.cnbc.com/',
-'https://www.dailyfx.com/
-https://www.fxstreet.com/
-https://www.elfinanciero.com.mx/
-https://www.advisorperspectives.com/
-https://www.investopedia.com/]
+lsWebSite=['https://cryptonews.com/',
+           'https://finance.yahoo.com/',
+            'https://www.cnbc.com/',
+            'https://www.dailyfx.com/',
+            'https://www.fxstreet.com/',
+            'https://www.elfinanciero.com.mx/',
+            'https://www.advisorperspectives.com/',
+             'https://www.investopedia.com/']
 
 objControl= cInternalControl()
 

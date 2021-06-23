@@ -5,7 +5,7 @@ from utils import *
 
 def main_thread_8(msg):
     BROWSER=returnChromeSettings()
-    BROWSER.get('https://mvnrepository.com/')
+    BROWSER.get(lsWebSite[7])
     for x in range(1,10):
         print(msg)
         time.sleep(2)

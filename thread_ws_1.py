@@ -5,7 +5,7 @@ from utils import *
 
 def main_thread_1(msg):
     BROWSER=returnChromeSettings()
-    BROWSER.get('https://cryptonews.com/')
+    BROWSER.get(lsWebSite[0])
     for x in range(1,10):
         print(msg)
         time.sleep(2)
