@@ -5,8 +5,13 @@ from utils import *
 lsThreads=list()
 
 for site in lsWebSite:
-    oThread=threading.Thread(target=main_thread,args=[site])
-    oThread.start()
+    threading.Thread(target=main_thread,args=[site]).start()
+
+
+      
+    
+
+
 
 
 
