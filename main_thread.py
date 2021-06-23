@@ -3,16 +3,16 @@ from utils import *
 
 
 
-def main_thread_7(msg):
+def main_thread(name):
     BROWSER=returnChromeSettings()
-    BROWSER.get(lsWebSite[6])
+    BROWSER.get(name)
     for x in range(1,10):
-        print(msg)
+        print(name)
         time.sleep(2)
-    print('Thread 1 done')   
+    print(name)   
     BROWSER.quit() 
 
 
 
 if __name__ == "__main__":
-    main_thread_7()    
+    main_thread()    

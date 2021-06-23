@@ -1,23 +1,19 @@
-from thread_1 import *
-from thread_2 import *
+from main_thread import *
 import threading
+from utils import *
 
 lsThreads=list()
 
-x = threading.Thread(target=main_thread_1,args=['holi'])
-y = threading.Thread(target=main_thread_2,args=['holi otra vez'])
-
-lsThreads.append(x)
-lsThreads.append(y)
-
-for thread in lsThreads:
-    thread.start()
-
-
-for thread in lsThreads:
-    thread.join()
+for site in lsWebSite:
+    oThread=threading.Thread(target=main_thread,args=[site])
+    oThread.start()
 
 
 
 
-print('All done')
+
+
+
+
+
+
