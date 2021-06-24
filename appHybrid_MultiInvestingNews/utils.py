@@ -76,15 +76,6 @@ def readFromInvesting():
     BROWSER.get(lsWebSite[0])
     time.sleep(4)
     for page in range(1,5):
-        if page==4:
-            BROWSER.quit()
-            #START OF TF-IDF AND WORD CLOUD PROCESS
-            generateKeyWordsAndWordCloudFromTFDIF(lsContentCorpus,None,None,'wholecorpus','wholecorpus',True)
-            #End of TF IDF - Keyword process
-            print('All td idf done...')
-            os.sys.exit(0) 
-        
-                   
         lsArticle=BROWSER.find_elements_by_tag_name('article')
         no_art=len(lsArticle)
         print('Total of News: ',str(no_art))
@@ -172,6 +163,16 @@ def readFromInvesting():
 
         #Loop for : Pages    
         print(f'-End of page {str(page)}-')
+        
+        #At the end of the page, decide where to set the stop and generate the complete TF-IDF
+        if page==4:
+            print(f'Generating complete TF-IDF until page {str(page)}')
+            BROWSER.quit()
+            #START OF TF-IDF AND WORD CLOUD PROCESS
+            generateKeyWordsAndWordCloudFromTFDIF(lsContentCorpus,None,None,'wholecorpus','wholecorpus',True)
+            #End of TF IDF - Keyword process
+            print('All td idf done...')
+            os.sys.exit(0) 
 
             
         #query=f'update tbControl set page={str(page+1)} where id={str(objControl.idControl)}'
