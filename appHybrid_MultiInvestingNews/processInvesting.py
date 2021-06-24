@@ -1,5 +1,4 @@
 #This file reads news from : https://www.investing.com/analysis/commodities
-
 from utils import *
 
 def processInvesting():
@@ -7,8 +6,6 @@ def processInvesting():
     url=lsWebSite[0]
     readUrl(url)
     
-
-
 
 
 
