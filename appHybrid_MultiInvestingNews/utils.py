@@ -77,7 +77,6 @@ def readFromInvesting():
         BROWSER.get(lsWebSite[0])
         time.sleep(4)
         for page in range(1,5):
-
             if page==4:
                 BROWSER.quit()
                 #Print all news
@@ -264,7 +263,12 @@ def readFromInvesting():
         print(str(error))    
 
 def readFromDailyFX():
-    print('yupi')
+    try:
+        returnChromeSettings()
+        BROWSER.get(lsWebSite[1])
+        time.sleep(4)
+    except NameError as error:
+        print(str(error))        
 
 def pre_process_data(content):
     content = content.replace('.',' ')
