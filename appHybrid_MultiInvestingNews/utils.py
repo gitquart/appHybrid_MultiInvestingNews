@@ -2,7 +2,6 @@ import json
 import os
 from numpy import fabs
 from selenium import webdriver
-import postgresql as db
 import chromedriver_autoinstaller
 import uuid
 import time
