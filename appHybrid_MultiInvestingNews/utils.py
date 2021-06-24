@@ -35,7 +35,7 @@ file_all_words='wholecorpus\\All_words_from_all_News.txt'
 file_all_news='wholecorpus\\All_News.txt'
 #lsWebSites sorted by importance
 lsWebSite=['https://www.investing.com/news/commodities-news',
-            'https://www.dailyfx.com/',
+            'https://www.dailyfx.com/market-news/articles',
             'https://cryptonews.com/',
            'https://finance.yahoo.com/',
             'https://www.cnbc.com/',
@@ -263,6 +263,9 @@ def readFromInvesting():
         print(str(error))    
 
 def readFromDailyFX():
+    """
+    Hints: Go to "News and analysis"-> "All news"->View all
+    """
     try:
         returnChromeSettings()
         BROWSER.get(lsWebSite[1])

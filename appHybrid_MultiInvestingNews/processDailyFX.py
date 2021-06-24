@@ -1,6 +1,6 @@
 import utils as tool
 """
-processDailyFX() fires the process to read https://www.dailyfx.com/
+processDailyFX() fires the process to read https://www.dailyfx.com/market-news/articles
 """
 def processDailyFX():
     tool.readFromDailyFX()
