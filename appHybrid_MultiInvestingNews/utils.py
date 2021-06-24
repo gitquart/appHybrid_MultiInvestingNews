@@ -181,6 +181,36 @@ def readFromInvesting():
         if btnNext:
             BROWSER.execute_script("arguments[0].click();",btnNext)
 
+def readFromDailyFX():
+    returnChromeSettings()
+    BROWSER.get(lsWebSite[1])
+    time.sleep(3)
+    lsNews=None
+    lsNews=devuelveListaElementos('/html/body/div[5]/div/div[3]/div/div[1]/div[1]/a')
+    #Get the news
+    strContent=None
+    for objNew in lsNews:
+        lsContent=list()
+        hrefLink=objNew.get_attribute('href')
+        BROWSER.execute_script('window.open("'+hrefLink+'")','_blank')
+        if len(BROWSER.window_handles)>1:
+            second_window=BROWSER.window_handles[1]
+            BROWSER.switch_to.window(second_window)
+            #Now in the second window
+            time.sleep(5)
+            strContent=devuelveElemento('/html/body/div[5]/div/main/article/section/div/div[1]/div[1]/div')
+            if strContent:
+                lsContent.append(strContent.text) 
+            #Close Window 2
+            BROWSER.close()
+            time.sleep(4)
+            #Now in First window
+            first_window=BROWSER.window_handles[0]
+            BROWSER.switch_to.window(first_window)    
+                 
+    print('End of page')  
+
+
 def generateKeyWordsAndWordCloudFromTFDIF(lsContent,page,no_new,folderKeyword,folderImage):
     strTop=''
     strBottom=''
@@ -238,25 +268,7 @@ def generateKeyWordsAndWordCloudFromTFDIF(lsContent,page,no_new,folderKeyword,fo
         
     printToFile(file_New_Keywords,strBottom)
             
-           
-
-def readFromDailyFX():
-    returnChromeSettings()
-    BROWSER.get(lsWebSite[1])
-    time.sleep(3)
-    lsNews=None
-    lsNews=devuelveListaElementos('/html/body/div[5]/div/div[3]/div/div[1]/div[1]/a')
-    #Get the news
-    lsContent=list()
-    strContent=None
-    for objNew in lsNews:
-        objNew.click()
-        strContent=devuelveElemento('/html/body/div[5]/div/main/article/section/div/div[1]/div[1]/div')
-        if strContent:
-            lsContent.append(strContent.text)
-        print('...')    
-     
-
+             
 def pre_process_data(content):
     content = content.replace('.',' ')
     content = re.sub(r'\s+',' ',re.sub(r'[^\w \s]','',content)).lower()
