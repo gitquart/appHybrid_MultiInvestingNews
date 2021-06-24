@@ -1,12 +1,11 @@
-#This file reads news from : https://www.investing.com/analysis/commodities
-from utils import *
-
+import utils as tool
+"""
+processInvesting() fires the process to read https://www.investing.com/analysis/commodities
+"""
 def processInvesting():
-    returnChromeSettings()
-    readUrl(lsWebSite[0])
+    tool.readFromInvesting()
     
-
-
+    
 
 if __name__ == "__main__":
     processInvesting()

@@ -33,11 +33,12 @@ lsContentCorpus=[]
 lsWordAllNews_WithNoSW=[]
 file_all_words='wholecorpus\\All_words_from_all_News.txt'
 file_all_news='wholecorpus\\All_News.txt'
+#lsWebSites sorted by importance
 lsWebSite=['https://www.investing.com/news/commodities-news',
+            'https://www.dailyfx.com/',
             'https://cryptonews.com/',
            'https://finance.yahoo.com/',
             'https://www.cnbc.com/',
-            'https://www.dailyfx.com/',
             'https://www.fxstreet.com/',
             'https://www.elfinanciero.com.mx/',
             'https://www.advisorperspectives.com/',
@@ -54,10 +55,6 @@ def returnChromeSettings():
     global BROWSER
     chromedriver_autoinstaller.install()
     options = Options()
-    #ua = UserAgent()
-    #userAgent = ua.random
-    #options.add_argument("start-maximized")
-    #options.add_argument(f"user-agent={userAgent}")
     options.add_argument("--no-sandbox")
 
     if objControl.heroku:
@@ -69,16 +66,15 @@ def returnChromeSettings():
         BROWSER=webdriver.Chrome(options=options)  
 
 
-
 """
-readUrl
-
-Reads the url from the jury web site
+readFromInvesting
+-----------------
+Reads from https://www.investing.com/analysis/commodities
 """
-
-def readUrl(url):
+def readFromInvesting():
     try:
-        BROWSER.get(url)
+        returnChromeSettings()
+        BROWSER.get(lsWebSite[0])
         time.sleep(4)
         for page in range(1,5):
 
@@ -266,6 +262,9 @@ def readUrl(url):
 
     except NameError as error:
         print(str(error))    
+
+def readFromDailyFX():
+    print('yupi')
 
 def pre_process_data(content):
     content = content.replace('.',' ')
