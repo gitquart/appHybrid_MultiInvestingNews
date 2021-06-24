@@ -3,8 +3,7 @@ from utils import *
 
 def processInvesting():
     returnChromeSettings()
-    url=lsWebSite[0]
-    readUrl(url)
+    readUrl(lsWebSite[0])
     
 
 

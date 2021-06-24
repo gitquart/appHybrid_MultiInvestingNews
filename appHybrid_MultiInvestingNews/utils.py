@@ -17,22 +17,22 @@ from wordcloud import WordCloud
 import matplotlib.pyplot as plt
 from nltk import tokenize
 
-
-objControl=cInternalControl()
 BROWSER=''
+objControl=cInternalControl()
 nltk.download('stopwords')
-lsMyStopWords=objControl.lsMyStopWords
+#Start of Common items
 lsStopWord_English = set(stopwords.words('english'))
 lsStopWord_Spanish= set(stopwords.words('spanish'))
+lsMyStopWords=['reuters','by','com','u','s','have','has','said','the','are','his','her','would','say','marketwatch',
+                   'since','could','newsletters','nwe2050','nowbrokerstoolseconomic','comworldamericasperuscastilloleadselectionwith501votesafterallballotstallied20210615',
+                   'etfsnysesiljsilxsinv','oilprice','ev','gm']
 lsFinalStopWords=list(set(lsStopWord_English) | set(lsMyStopWords) | set(lsStopWord_Spanish) )
-lsSources=['Reuters','Investing.com','Bloomberg']
 lsKeyWordsLimit=[20,30,35]
 #lsContentCorpus and lsWordAllNews_WithNoSW  are elements for the TF IDF of a SET OF NEWS
 lsContentCorpus=[]
 lsWordAllNews_WithNoSW=[]
 file_all_words='wholecorpus\\All_words_from_all_News.txt'
 file_all_news='wholecorpus\\All_News.txt'
-
 lsWebSite=['https://www.investing.com/news/commodities-news',
             'https://cryptonews.com/',
            'https://finance.yahoo.com/',
@@ -43,6 +43,11 @@ lsWebSite=['https://www.investing.com/news/commodities-news',
             'https://www.advisorperspectives.com/',
              'https://www.investopedia.com/']
 
+#End of Common items
+
+#Start of Investing.com items
+lsSources=['Reuters','Investing.com','Bloomberg']
+#End of Investing.com items
 
 
 def returnChromeSettings():
