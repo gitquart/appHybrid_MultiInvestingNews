@@ -169,7 +169,7 @@ def readFromInvesting():
             print(f'Generating complete TF-IDF until page {str(page)}')
             BROWSER.quit()
             #START OF TF-IDF AND WORD CLOUD PROCESS
-            generateKeyWordsAndWordCloudFromTFDIF(lsContentCorpus,None,None,'wholecorpus','wholecorpus',True)
+            generateKeyWordsAndWordCloudFromTFDIF(lsContentCorpus,None,None,'wholecorpus','wholecorpus')
             #End of TF IDF - Keyword process
             print('All td idf done...')
             os.sys.exit(0) 
@@ -181,11 +181,11 @@ def readFromInvesting():
         if btnNext:
             BROWSER.execute_script("arguments[0].click();",btnNext)
 
-def generateKeyWordsAndWordCloudFromTFDIF(lsContent,page,no_new,folderKeyword,folderImage,fullCorpus):
+def generateKeyWordsAndWordCloudFromTFDIF(lsContent,page,no_new,folderKeyword,folderImage):
     strTop=''
     strBottom=''
-    lsContentToRead=None
-    if fullCorpus:
+    contentSize=len(lsContent)
+    if contentSize>1:
         file_New_Keywords=folderKeyword+'\\wholecorpus_keyword.txt'  
         strTop='--------------Start of All news---------------------\n'  
         strBottom='--------------End of All news---------------------\n'
@@ -196,8 +196,6 @@ def generateKeyWordsAndWordCloudFromTFDIF(lsContent,page,no_new,folderKeyword,fo
         strBottom=f'--------End of News {str(no_new)} ---------------\n'
         lsContentToRead=lsContent
         
-    
-
     printToFile(file_New_Keywords,strTop)
     printToFile(file_New_Keywords,f' News Content :\n')
     for content in lsContentToRead:
@@ -207,7 +205,7 @@ def generateKeyWordsAndWordCloudFromTFDIF(lsContent,page,no_new,folderKeyword,fo
 
     #Creating TF-IDF and its dataframe
     lsRes=[]
-    lsRes=getDataFrameFromTF_IDF(lsContentToRead,fullCorpus)
+    lsRes=getDataFrameFromTF_IDF(lsContent,contentSize)
     df=lsRes[0]
     lsFeatures=lsRes[1]    
     for keywordsLimit in lsKeyWordsLimit:
@@ -227,7 +225,7 @@ def generateKeyWordsAndWordCloudFromTFDIF(lsContent,page,no_new,folderKeyword,fo
             printToFile(file_New_Keywords,line+'\n')
                 
         #Create WorldCloud from any dictionary (Ex: Word, Freq; Word, TF-IDF,....{Word, AnyValue})
-        if page is None:
+        if contentSize==1:
             image_file=folderImage+'\\image_page_'+str(page)+'_new_'+str(no_new)+'_'+str(keywordsLimit)+'_keyword.jpeg'
         else:
             image_file=folderImage+'\\wholecorpusImage_'+str(keywordsLimit)+'keyword.jpeg'    
@@ -290,17 +288,13 @@ def createWordCloud(imageName,dictWord_Weight):
     plt.savefig(f'{imageName}')
     del wordcloud
     
-def getDataFrameFromTF_IDF(lsContent,fullCorpus):
-    """
-    Set lsContent = None if you use fullCorpus=True
-    Other wise, set lsContent with any content (single document) and set fullCorpus =False
-    """
+def getDataFrameFromTF_IDF(lsContent,contentSize):
     #Start of "some filtering"
     #I add up the Stopwords and some cutomized Stopwords (My stop words list)
     lsCorpus=[]
     lsVocabulary=[]
     lsVocabularyWithNoSW=[]
-    if not fullCorpus:
+    if contentSize==1:
         for document in lsContent:
             data_preprocessed=pre_process_data(document)
             lsCorpus.append(data_preprocessed)
@@ -321,13 +315,15 @@ def getDataFrameFromTF_IDF(lsContent,fullCorpus):
     #X sparse matrix of (n_samples, n_features)
     #Tf-idf-weighted document-term matrix.
     
-    if fullCorpus:
+    if contentSize>1:
+        #Case: Full corpus
         if (not lsWordAllNews_WithNoSW) or (not lsContentCorpus):
             print('No vocabulary or content')
             os.sys.exit(0)
         vectorizer = TfidfVectorizer(vocabulary=list(set(lsWordAllNews_WithNoSW)))
         tf_idf_matrix = vectorizer.fit_transform(lsContentCorpus)
     else:
+        #Case: Single document (New)
         if (not lsVocabularyWithNoSW) or (not lsCorpus):
             print('No vocabulary or content')
             os.sys.exit(0)
