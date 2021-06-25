@@ -67,6 +67,8 @@ def returnChromeSettings():
     else:
         BROWSER=webdriver.Chrome(options=options)  
 
+        
+
 
 """
 readFromInvesting
@@ -212,8 +214,14 @@ def readFromDailyFX():
 def readFromInvestopedia_Market():
     returnChromeSettings()
     time.sleep(4)
-    for page in range(1,5):
-        BROWSER.get(dicWebSite[2]+'/'+str(page))
+    BROWSER.get(dicWebSite['investopedia_markets'])
+    print('Market...')
+
+def readFromInvestopedia_Trading():
+    returnChromeSettings()
+    time.sleep(4)
+    BROWSER.get(dicWebSite['investopedia_trading'])   
+    print('Trading...')     
 
 def generateKeyWordsAndWordCloudFromTFDIF(lsContent,page,no_new,folderKeyword,folderImage,bPrintReport):
     #This implementation of code is based on : 
