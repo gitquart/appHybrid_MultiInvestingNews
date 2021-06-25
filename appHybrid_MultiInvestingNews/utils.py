@@ -73,9 +73,9 @@ Reads from https://www.investing.com/analysis/commodities
 """
 def readFromInvesting():
     returnChromeSettings()
-    BROWSER.get(lsWebSite[0])
     time.sleep(4)
     for page in range(1,5):
+        BROWSER.get(lsWebSite[0]+'/'+str(page))
         lsArticle=BROWSER.find_elements_by_tag_name('article')
         no_art=len(lsArticle)
         print('Total of News: ',str(no_art))
@@ -92,6 +92,7 @@ def readFromInvesting():
             strSource=''
             txtSource=''
             time.sleep(4)
+            
             #For source: Those from "lsSource" list have "span", the rest have "div"
             try:
                 txtSource=BROWSER.find_elements_by_xpath(f'/html/body/div[5]/section/div[4]/article[{str(idx+1)}]/div[1]/span/span[1]')[0]
@@ -144,13 +145,9 @@ def readFromInvesting():
                     time.sleep(3)
                     if btnPopUpClose:
                         BROWSER.execute_script("arguments[0].click();",btnPopUpClose)
-            
-            #Start of TF IDF - Keyword process       
-            #This implementation of code is based on : 
-            # https://towardsdatascience.com/tf-idf-explained-and-python-sklearn-implementation-b020c5e83275
-            
+                 
             #START OF TF-IDF AND WORD CLOUD PROCESS
-            generateKeyWordsAndWordCloudFromTFDIF(lsContent,page,idx+1,'news_analysis','images_wordcloud')
+            generateKeyWordsAndWordCloudFromTFDIF(lsContent,page,idx+1,'news_analysis','images_wordcloud',False)
             #End of TF IDF - Keyword process
             
 
@@ -161,7 +158,7 @@ def readFromInvesting():
                 BROWSER.execute_script("window.history.go(-1)")      
             time.sleep(5)
 
-        #Loop for : Pages    
+        #For Loop : Pages    
         print(f'-End of page {str(page)}-')
         
         #At the end of the page, decide where to set the stop and generate the complete TF-IDF
@@ -169,69 +166,73 @@ def readFromInvesting():
             print(f'Generating complete TF-IDF until page {str(page)}')
             BROWSER.quit()
             #START OF TF-IDF AND WORD CLOUD PROCESS
-            generateKeyWordsAndWordCloudFromTFDIF(lsContentCorpus,None,None,'wholecorpus','wholecorpus')
+            generateKeyWordsAndWordCloudFromTFDIF(lsContentCorpus,None,None,'wholecorpus','wholecorpus',False)
             #End of TF IDF - Keyword process
             print('All td idf done...')
             os.sys.exit(0) 
 
-            
+          
         #query=f'update tbControl set page={str(page+1)} where id={str(objControl.idControl)}'
         #db.executeNonQuery(query)
-        btnNext=BROWSER.find_elements_by_xpath('/html/body/div[5]/section/div[5]/div[3]/a')[0]
-        if btnNext:
-            BROWSER.execute_script("arguments[0].click();",btnNext)
+
 
 def readFromDailyFX():
     returnChromeSettings()
-    BROWSER.get(lsWebSite[1])
-    time.sleep(3)
-    lsNews=None
-    lsNews=devuelveListaElementos('/html/body/div[5]/div/div[3]/div/div[1]/div[1]/a')
-    #Get the news
-    strContent=None
-    for objNew in lsNews:
-        lsContent=list()
-        hrefLink=objNew.get_attribute('href')
-        BROWSER.execute_script('window.open("'+hrefLink+'")','_blank')
-        if len(BROWSER.window_handles)>1:
-            second_window=BROWSER.window_handles[1]
-            BROWSER.switch_to.window(second_window)
-            #Now in the second window
-            time.sleep(5)
-            strContent=devuelveElemento('/html/body/div[5]/div/main/article/section/div/div[1]/div[1]/div')
-            if strContent:
-                lsContent.append(strContent.text) 
-            #Close Window 2
-            BROWSER.close()
-            time.sleep(4)
-            #Now in First window
-            first_window=BROWSER.window_handles[0]
-            BROWSER.switch_to.window(first_window)    
+    for page in range(1,4):
+        BROWSER.get(lsWebSite[1]+'/'+str(page))
+        time.sleep(3)
+        lsNews=None
+        lsNews=devuelveListaElementos('/html/body/div[5]/div/div[3]/div/div[1]/div[1]/a')
+        #Get the news
+        strContent=None
+        for objNew in lsNews:
+            lsContent=list()
+            hrefLink=objNew.get_attribute('href')
+            BROWSER.execute_script('window.open("'+hrefLink+'")','_blank')
+            if len(BROWSER.window_handles)>1:
+                second_window=BROWSER.window_handles[1]
+                BROWSER.switch_to.window(second_window)
+                #Now in the second window
+                time.sleep(5)
+                strContent=devuelveElemento('/html/body/div[5]/div/main/article/section/div/div[1]/div[1]/div')
+                if strContent:
+                    lsContent.append(strContent.text) 
+                #Close Window 2
+                BROWSER.close()
+                time.sleep(4)
+                #Now in First window
+                first_window=BROWSER.window_handles[0]
+                BROWSER.switch_to.window(first_window)    
                  
-    print('End of page')  
+        print('End of page')  
 
 
-def generateKeyWordsAndWordCloudFromTFDIF(lsContent,page,no_new,folderKeyword,folderImage):
+def generateKeyWordsAndWordCloudFromTFDIF(lsContent,page,no_new,folderKeyword,folderImage,bPrintReport):
+    #This implementation of code is based on : 
+    # https://towardsdatascience.com/tf-idf-explained-and-python-sklearn-implementation-b020c5e83275
     strTop=''
     strBottom=''
     contentSize=len(lsContent)
     if contentSize>1:
-        file_New_Keywords=folderKeyword+'\\wholecorpus_keyword.txt'  
-        strTop='--------------Start of All news---------------------\n'  
-        strBottom='--------------End of All news---------------------\n'
+        if bPrintReport:
+            file_New_Keywords=folderKeyword+'\\wholecorpus_keyword.txt'  
+            strTop='--------------Start of All news---------------------\n'  
+            strBottom='--------------End of All news---------------------\n'
         lsContentToRead=None
     else:
-        file_New_Keywords=folderKeyword+'\\NewAndKeywords_For_Page_'+str(page)+'_New_'+str(no_new)+'.txt'
-        strTop=f'--------Start of Page {str(page)} New {str(no_new)} ---------------\n'
-        strBottom=f'--------End of News {str(no_new)} ---------------\n'
+        if bPrintReport:
+            file_New_Keywords=folderKeyword+'\\NewAndKeywords_For_Page_'+str(page)+'_New_'+str(no_new)+'.txt'
+            strTop=f'--------Start of Page {str(page)} New {str(no_new)} ---------------\n'
+            strBottom=f'--------End of News {str(no_new)} ---------------\n'
         lsContentToRead=lsContent
-        
-    printToFile(file_New_Keywords,strTop)
-    printToFile(file_New_Keywords,f' News Content :\n')
-    for content in lsContentToRead:
-        printToFile(file_New_Keywords,'********************************************************\n')
-        printToFile(file_New_Keywords,content+'\n')
-        printToFile(file_New_Keywords,'********************************************************\n')
+    
+    if bPrintReport:    
+        printToFile(file_New_Keywords,strTop)
+        printToFile(file_New_Keywords,f' News Content :\n')        
+        for content in lsContentToRead:
+            printToFile(file_New_Keywords,'********************************************************\n')
+            printToFile(file_New_Keywords,content+'\n')
+            printToFile(file_New_Keywords,'********************************************************\n')
 
     #Creating TF-IDF and its dataframe
     lsRes=[]
@@ -245,14 +246,16 @@ def generateKeyWordsAndWordCloudFromTFDIF(lsContent,page,no_new,folderKeyword,fo
             print('The keywords limit is greater than the feature list')
             os.sys.exit(0)
 
-        printToFile(file_New_Keywords,f'-------------------First {str(keywordsLimit)} Important Keywords--------------------\n')
-        printToFile(file_New_Keywords,f'-------------------Word , Tf-idf value--------------------\n')
+        if bPrintReport:
+            printToFile(file_New_Keywords,f'-------------------First {str(keywordsLimit)} Important Keywords--------------------\n')
+            printToFile(file_New_Keywords,f'-------------------Word , Tf-idf value--------------------\n')
             
         dictWord_TF_IDF={}
         for row in df_Sliced.iterrows():
             line=str(row[1].name)+' , '+str(row[1].values[0])
             dictWord_TF_IDF[str(row[1].name)]=float(str(row[1].values[0]))
-            printToFile(file_New_Keywords,line+'\n')
+            if bPrintReport:
+                printToFile(file_New_Keywords,line+'\n')
                 
         #Create WorldCloud from any dictionary (Ex: Word, Freq; Word, TF-IDF,....{Word, AnyValue})
         if contentSize==1:
@@ -265,8 +268,9 @@ def generateKeyWordsAndWordCloudFromTFDIF(lsContent,page,no_new,folderKeyword,fo
         del dictWord_TF_IDF
         del df_Sliced
     del df    
-        
-    printToFile(file_New_Keywords,strBottom)
+
+    if bPrintReport:    
+        printToFile(file_New_Keywords,strBottom)
             
              
 def pre_process_data(content):
