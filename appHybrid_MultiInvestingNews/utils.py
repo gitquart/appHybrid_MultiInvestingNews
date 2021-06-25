@@ -39,11 +39,11 @@ dicWebSite={
             'dailyfx': 'https://www.dailyfx.com/market-news/articles',
             'investopedia_markets':'https://www.investopedia.com/markets-news-4427704',
             'investopedia_trading':'https://www.investopedia.com/trading-news-4689736',
-            'cryptonews':'https://cryptonews.com/',
+            'cryptonews':'https://cryptonews.com/news/bitcoin-news/',
             'yahoofinance':'https://finance.yahoo.com/',
             'cnbc':'https://www.cnbc.com/',
             'fxstreet':'https://www.fxstreet.com/',
-            'financieno':'https://www.elfinanciero.com.mx/'
+            'financiero':'https://www.elfinanciero.com.mx/'
             }
 
 #End of Common items
@@ -68,13 +68,6 @@ def returnChromeSettings():
         BROWSER=webdriver.Chrome(options=options)  
 
         
-
-
-"""
-readFromInvesting
------------------
-Reads from https://www.investing.com/analysis/commodities
-"""
 def readFromInvesting():
     returnChromeSettings()
     time.sleep(4)
@@ -222,6 +215,25 @@ def readFromInvestopedia(option):
             secondWindowMechanism(lsContent,'/html/body/main/div[2]/article/div[2]/div[1]')
 
     #BROWSER.quit()
+    
+def readFromCryptonews():
+    returnChromeSettings()
+    BROWSER.get(dicWebSite['cryptonews'])
+    lsFirstSection=devuelveListaElementos('/html/body/div[2]/section[1]/div/div')
+    for objNew in lsFirstSection:
+        lsContent=list()
+        linkNew=None
+        idx= lsFirstSection.index(objNew)
+        linkNew=devuelveElemento(f'/html/body/div[2]/section[1]/div/div[{str(idx+1)}]/a')
+        hrefLink=linkNew.get_attribute('href')
+        BROWSER.execute_script('window.open("'+hrefLink+'")','_blank')
+        secondWindowMechanism(lsContent,'/html/body')
+        
+        
+
+                                           
+
+
 
 def secondWindowMechanism(lsContent,xPathElementSecondWindow):
     if len(BROWSER.window_handles)>1:
@@ -233,7 +245,8 @@ def secondWindowMechanism(lsContent,xPathElementSecondWindow):
         strContent=None
         strContent=devuelveElemento(xPathElementSecondWindow)
         if strContent:
-            lsContent.append(strContent.text) 
+            textContent=strContent.text
+            lsContent.append(textContent) 
         #Close Window 2
         BROWSER.close()
         time.sleep(4)
