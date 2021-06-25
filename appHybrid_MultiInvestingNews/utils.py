@@ -209,6 +209,7 @@ def readFromDailyFX():
                 BROWSER.switch_to.window(first_window)    
                  
         print('End of page')  
+        BROWSER.quit()
 
 
 def readFromInvestopedia_Market():
@@ -216,12 +217,14 @@ def readFromInvestopedia_Market():
     time.sleep(4)
     BROWSER.get(dicWebSite['investopedia_markets'])
     print('Market...')
+    #BROWSER.quit()
 
 def readFromInvestopedia_Trading():
     returnChromeSettings()
     time.sleep(4)
     BROWSER.get(dicWebSite['investopedia_trading'])   
-    print('Trading...')     
+    print('Trading...')   
+    #BROWSER.quit()  
 
 def generateKeyWordsAndWordCloudFromTFDIF(lsContent,page,no_new,folderKeyword,folderImage,bPrintReport):
     #This implementation of code is based on : 
@@ -295,7 +298,6 @@ def pre_process_data(content):
 
     return content
 
-
 def devuelveElementoDinamico(xPath,option,limit):
     try:
         if option==limit:
@@ -311,8 +313,6 @@ def devuelveElementoDinamico(xPath,option,limit):
         option+=1
         devuelveElementoDinamico(xPath,option,limit)
                    
-
-
 def createWordCloud(imageName,dictWord_Weight):
     wordcloud = WordCloud().generate_from_frequencies(dictWord_Weight)
     plt.imshow(wordcloud, interpolation='bilinear')
@@ -321,8 +321,7 @@ def createWordCloud(imageName,dictWord_Weight):
     del wordcloud
     
 def getDataFrameFromTF_IDF(lsContent,contentSize):
-    #Start of "some filtering"
-    #I add up the Stopwords and some cutomized Stopwords (My stop words list)
+    #Start of "FILTERING AND STOPWORDS"
     lsCorpus=[]
     lsVocabulary=[]
     lsVocabularyWithNoSW=[]
@@ -341,7 +340,7 @@ def getDataFrameFromTF_IDF(lsContent,contentSize):
                 #lsWordAllNews_WithNoSW si for the TF IDF with a set of NEWS
                 lsWordAllNews_WithNoSW.append(word)
 
-    #End of "some filtering"
+    #End of "FILTERING AND STOPWORDS"
 
     #fit_transform() returns
     #X sparse matrix of (n_samples, n_features)
@@ -371,20 +370,17 @@ def getDataFrameFromTF_IDF(lsContent,contentSize):
     tfIdf = tfIdfVectorizer.fit_transform(dataset)
     df = pd.DataFrame(tfIdf[0].T.todense(), index=tfIdfVectorizer.get_feature_names(), columns=["TF-IDF"])
     df = df.sort_values('TF-IDF', ascending=False)
-    print (df.head(25))
     """
     df=pd.DataFrame(tf_idf_matrix[0].T.todense(),index=vectorizer.get_feature_names(),columns=["TF-IDF"])
     df=df.sort_values('TF-IDF',ascending=False)
    
     
-    return [df,vectorizer.get_feature_names()]
-      
+    return [df,vectorizer.get_feature_names()]      
 
 def printToFile(completeFileName,content):
     with open(completeFileName, 'a',encoding='utf-8') as f:
         f.write(content)
     f.close()    
- 
                                        
 def devuelveJSON(jsonFile):
     with open(jsonFile) as json_file:
