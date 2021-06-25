@@ -1,5 +1,6 @@
 import json
 import os
+from typing import overload
 from numpy import fabs
 from selenium import webdriver
 import chromedriver_autoinstaller
@@ -16,6 +17,7 @@ import nltk
 from wordcloud import WordCloud
 import matplotlib.pyplot as plt
 from nltk import tokenize
+from googletrans import Translator, constants
 
 BROWSER=''
 objControl=cInternalControl()
@@ -221,6 +223,12 @@ def readFromInvestopedia(option):
 def readFromCryptonews():
     returnChromeSettings()
     BROWSER.get(dicWebSite['cryptonews'])
+    #Wait for publishing to appear, they stop the reading
+    time.sleep(10)
+    btnLater= devuelveElemento('/html/body/div[5]/div/div/div[2]/button[2]')
+    if btnLater:
+        btnLater.click()
+    BROWSER.switch_to.default_content()
     lsFirstSection=devuelveListaElementos('/html/body/div[2]/section[1]/div/div')
     for objNew in lsFirstSection:
         lsContent=list()
@@ -229,7 +237,7 @@ def readFromCryptonews():
         linkNew=devuelveElemento(f'/html/body/div[2]/section[1]/div/div[{str(idx+1)}]/a')
         hrefLink=linkNew.get_attribute('href')
         BROWSER.execute_script('window.open("'+hrefLink+'")','_blank')
-        secondWindowMechanism(lsContent,'/html/body')
+        secondWindowMechanism(lsContent,'/html/body/div[2]/article/div')
         
         
 
