@@ -129,26 +129,12 @@ def readFromInvesting():
                 if linkPopUp:
                     BROWSER.execute_script("arguments[0].click();",linkPopUp)
                 time.sleep(3)
-                if len(BROWSER.window_handles)>1:
-                    second_window=BROWSER.window_handles[1]
-                    BROWSER.switch_to.window(second_window)
-                    #Now in the second window
-                    time.sleep(5)
-                    textPage=devuelveElemento('/html/body')
-                    lsContent.append(textPage.text)
-                   
-                    #Close Window 2
-                    BROWSER.close()
-                    time.sleep(4)
-                    #Now in First window
-                    first_window=BROWSER.window_handles[0]
-                    BROWSER.switch_to.window(first_window)
-                    #BROWSER.refresh()
-                    btnPopUpClose=None
-                    btnPopUpClose=devuelveElementoDinamico('/html/body/div[option]/span/i',6,15)
-                    time.sleep(3)
-                    if btnPopUpClose:
-                        BROWSER.execute_script("arguments[0].click();",btnPopUpClose)
+                secondWindowMechanism(lsContent,'/html/body')
+                btnPopUpClose=None
+                btnPopUpClose=devuelveElementoDinamico('/html/body/div[option]/span/i',6,15)
+                time.sleep(3)
+                if btnPopUpClose:
+                    BROWSER.execute_script("arguments[0].click();",btnPopUpClose)
                  
             #START OF TF-IDF AND WORD CLOUD PROCESS
             generateKeyWordsAndWordCloudFromTFDIF(lsContent,page,idx+1,'news_analysis','images_wordcloud',False)
@@ -193,38 +179,54 @@ def readFromDailyFX():
             lsContent=list()
             hrefLink=objNew.get_attribute('href')
             BROWSER.execute_script('window.open("'+hrefLink+'")','_blank')
-            if len(BROWSER.window_handles)>1:
-                second_window=BROWSER.window_handles[1]
-                BROWSER.switch_to.window(second_window)
-                #Now in the second window
-                time.sleep(5)
-                strContent=devuelveElemento('/html/body/div[5]/div/main/article/section/div/div[1]/div[1]/div')
-                if strContent:
-                    lsContent.append(strContent.text) 
-                #Close Window 2
-                BROWSER.close()
-                time.sleep(4)
-                #Now in First window
-                first_window=BROWSER.window_handles[0]
-                BROWSER.switch_to.window(first_window)    
+            secondWindowMechanism(lsContent,'/html/body/div[5]/div/main/article/section/div/div[1]/div[1]/div')        
                  
         print('End of page')  
         BROWSER.quit()
 
 
-def readFromInvestopedia_Market():
+def readFromInvestopedia(option):
     returnChromeSettings()
     time.sleep(4)
-    BROWSER.get(dicWebSite['investopedia_markets'])
-    print('Market...')
+    if option=='market':
+        BROWSER.get(dicWebSite['investopedia_markets'])
+    else:
+        BROWSER.get(dicWebSite['investopedia_trading'])
+
+    lsFirstCard=devuelveListaElementos('/html/body/main/div[1]/div[2]/section/ul/li')
+    if lsFirstCard:
+        lsContent=list()
+        for card in lsFirstCard:
+            print(card.text+'\n')
+            hrefLink=card.get_attribute('href')
+            BROWSER.execute_script('window.open("'+hrefLink+'")','_blank')
+            #card.click()
+            secondWindowMechanism(lsContent)
+             
+    lsSecondCard=devuelveListaElementos('/html/body/main/div[2]/div[2]/ul/li')          
+    if lsSecondCard:
+        for card in lsSecondCard:
+            print(card.text+'\n')
+
     #BROWSER.quit()
 
-def readFromInvestopedia_Trading():
-    returnChromeSettings()
-    time.sleep(4)
-    BROWSER.get(dicWebSite['investopedia_trading'])   
-    print('Trading...')   
-    #BROWSER.quit()  
+def secondWindowMechanism(lsContent,xPathElementSecondWindow):
+    if len(BROWSER.window_handles)>1:
+        second_window=BROWSER.window_handles[1]
+        BROWSER.switch_to.window(second_window)
+        #Now in the second window
+        time.sleep(5)
+        #Get the text from second window and append it to lsContent
+        strContent=None
+        strContent=devuelveElemento(xPathElementSecondWindow)
+        if strContent:
+            lsContent.append(strContent.text) 
+        #Close Window 2
+        BROWSER.close()
+        time.sleep(4)
+        #Now in First window
+        first_window=BROWSER.window_handles[0]
+        BROWSER.switch_to.window(first_window)
 
 def generateKeyWordsAndWordCloudFromTFDIF(lsContent,page,no_new,folderKeyword,folderImage,bPrintReport):
     #This implementation of code is based on : 
