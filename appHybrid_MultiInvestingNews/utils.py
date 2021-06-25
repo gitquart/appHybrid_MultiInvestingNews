@@ -210,7 +210,16 @@ def readFromInvestopedia(option):
     lsSecondCard=devuelveListaElementos('/html/body/main/div[2]/div[2]/ul/li')          
     if lsSecondCard:
         for card in lsSecondCard:
-            print(card.text+'\n')
+            lsContent=list()
+            strTitle=None
+            idx=None
+            linkNew=None
+            strTitle=card.text
+            idx= lsSecondCard.index(card)
+            linkNew=devuelveElemento(f'/html/body/main/div[2]/div[2]/ul/li[{str(idx+1)}]/a')
+            hrefLink=linkNew.get_attribute('href')
+            BROWSER.execute_script('window.open("'+hrefLink+'")','_blank')
+            secondWindowMechanism(lsContent,'/html/body/main/div[2]/article/div[2]/div[1]')
 
     #BROWSER.quit()
 
