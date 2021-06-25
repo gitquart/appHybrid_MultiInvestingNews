@@ -195,13 +195,17 @@ def readFromInvestopedia(option):
 
     lsFirstCard=devuelveListaElementos('/html/body/main/div[1]/div[2]/section/ul/li')
     if lsFirstCard:
-        lsContent=list()
         for card in lsFirstCard:
-            print(card.text+'\n')
-            hrefLink=card.get_attribute('href')
+            lsContent=list()
+            strTitle=None
+            idx=None
+            linkNew=None
+            strTitle=card.text
+            idx= lsFirstCard.index(card)
+            linkNew=devuelveElemento(f'/html/body/main/div[1]/div[2]/section/ul/li[{str(idx+1)}]/a')
+            hrefLink=linkNew.get_attribute('href')
             BROWSER.execute_script('window.open("'+hrefLink+'")','_blank')
-            #card.click()
-            secondWindowMechanism(lsContent)
+            secondWindowMechanism(lsContent,'/html/body/main/div[2]/article/div[2]/div[1]')
              
     lsSecondCard=devuelveListaElementos('/html/body/main/div[2]/div[2]/ul/li')          
     if lsSecondCard:
@@ -292,8 +296,7 @@ def generateKeyWordsAndWordCloudFromTFDIF(lsContent,page,no_new,folderKeyword,fo
 
     if bPrintReport:    
         printToFile(file_New_Keywords,strBottom)
-            
-             
+                         
 def pre_process_data(content):
     content = content.replace('.',' ')
     content = re.sub(r'\s+',' ',re.sub(r'[^\w \s]','',content)).lower()
