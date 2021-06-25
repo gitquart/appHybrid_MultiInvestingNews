@@ -33,16 +33,18 @@ lsContentCorpus=[]
 lsWordAllNews_WithNoSW=[]
 file_all_words='wholecorpus\\All_words_from_all_News.txt'
 file_all_news='wholecorpus\\All_News.txt'
-#lsWebSites sorted by importance
-lsWebSite=['https://www.investing.com/news/commodities-news',
-            'https://www.dailyfx.com/market-news/articles',
-            'https://cryptonews.com/',
-           'https://finance.yahoo.com/',
-            'https://www.cnbc.com/',
-            'https://www.fxstreet.com/',
-            'https://www.elfinanciero.com.mx/',
-            'https://www.advisorperspectives.com/',
-             'https://www.investopedia.com/']
+#dicWebSites sorted by importance
+dicWebSite={
+            'investing':'https://www.investing.com/news/commodities-news',
+            'dailyfx': 'https://www.dailyfx.com/market-news/articles',
+            'investopedia_markets':'https://www.investopedia.com/markets-news-4427704',
+            'investopedia_trading':'https://www.investopedia.com/trading-news-4689736',
+            'cryptonews':'https://cryptonews.com/',
+            'yahoofinance':'https://finance.yahoo.com/',
+            'cnbc':'https://www.cnbc.com/',
+            'fxstreet':'https://www.fxstreet.com/',
+            'financieno':'https://www.elfinanciero.com.mx/'
+            }
 
 #End of Common items
 
@@ -75,7 +77,7 @@ def readFromInvesting():
     returnChromeSettings()
     time.sleep(4)
     for page in range(1,5):
-        BROWSER.get(lsWebSite[0]+'/'+str(page))
+        BROWSER.get(dicWebSite['investing']+'/'+str(page))
         lsArticle=BROWSER.find_elements_by_tag_name('article')
         no_art=len(lsArticle)
         print('Total of News: ',str(no_art))
@@ -179,7 +181,7 @@ def readFromInvesting():
 def readFromDailyFX():
     returnChromeSettings()
     for page in range(1,4):
-        BROWSER.get(lsWebSite[1]+'/'+str(page))
+        BROWSER.get(dicWebSite['dailyfx']+'/'+str(page))
         time.sleep(3)
         lsNews=None
         lsNews=devuelveListaElementos('/html/body/div[5]/div/div[3]/div/div[1]/div[1]/a')
@@ -206,6 +208,12 @@ def readFromDailyFX():
                  
         print('End of page')  
 
+
+def readFromInvestopedia_Market():
+    returnChromeSettings()
+    time.sleep(4)
+    for page in range(1,5):
+        BROWSER.get(dicWebSite[2]+'/'+str(page))
 
 def generateKeyWordsAndWordCloudFromTFDIF(lsContent,page,no_new,folderKeyword,folderImage,bPrintReport):
     #This implementation of code is based on : 
