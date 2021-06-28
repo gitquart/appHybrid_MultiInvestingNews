@@ -3,7 +3,7 @@ import utils as tool
 def processYahoo():
     try:
         print('-------Yahoo-------')
-        tool.readFromYahoo('market')
+        tool.readFromYahoo('new')
     except NameError as err:
         print(str(err))    
     

@@ -1,5 +1,6 @@
 import json
 import os
+from nltk import translate
 from selenium import webdriver
 import chromedriver_autoinstaller
 import uuid
@@ -16,6 +17,7 @@ from wordcloud import WordCloud
 import matplotlib.pyplot as plt
 from nltk import tokenize
 from google_trans_new import google_translator
+#from translate import translator
 from selenium.webdriver.common.keys import Keys
 
 BROWSER=''
@@ -60,7 +62,7 @@ def getEnglishAndSpanishNew(sourceText):
     #Translate and get English & spanish
     #lsText has [0]: Original source, [1]: Translation
     lsRes=list()
-    translator = google_translator() 
+    translator= google_translator()
     result=translator.translate(sourceText,'es','en')
     lsRes.append(sourceText)
     lsRes.append(result)
@@ -264,12 +266,17 @@ def readFromYahoo(option):
     returnChromeSettings()
     time.sleep(4)
     strPathMainSection=None
+    strLink=None
     if option=='market':
         BROWSER.get(dicWebSite['yahoofinance_market'])
         strPathMainSection='/html/body/div[1]/div/div/div[1]/div/div[3]/div[1]/div/div[3]/div/div/div/ul/li'
+        strLink='/html/body/div[1]/div/div/div[1]/div/div[3]/div[1]/div/div[3]/div/div/div/ul/li[idx]/div/div/div[2]/h3/a'
     else:
         BROWSER.get(dicWebSite['yahoofinance_news']) 
         strPathMainSection='/html/body/div[1]/div/div/div[1]/div/div[3]/div[1]/div/div[2]/div/div/div/ul/li'
+        strLink='/html/body/div[1]/div/div/div[1]/div/div[3]/div[1]/div/div[2]/div/div/div/ul/li[idx]/div/div/div[2]/h3/a'
+        strLink2='/html/body/div[1]/div/div/div[1]/div/div[3]/div[1]/div/div[2]/div/div/div/ul/li[idx]/div/div/div[1]/h3/a'
+        
 
     #Scroll down infinite loading page
     for x in range(1,200):
@@ -281,16 +288,28 @@ def readFromYahoo(option):
         lsContent=list()
         linkNew=None
         idx= lsMainSection.index(objNew)
-        try:
-            linkNew=BROWSER.find_element_by_xpath(f'/html/body/div[1]/div/div/div[1]/div/div[3]/div[1]/div/div[3]/div/div/div/ul/li[{str(idx+1)}]/div/div/div[2]/h3/a')
-        except:
-            print(f'I AM AN AD: {str(idx+1)} ')
-            continue
-                
-        
+        #Cases: Market and New
+        strLink=strLink.replace('idx',str(idx+1))     
+        if option=='market':                  
+            try:
+                linkNew=BROWSER.find_element_by_xpath(strLink)
+            except:
+                print(f'I AM AN AD: {str(idx+1)} ')
+                continue
+        else:
+            strLink2=strLink2.replace('idx',str(idx+1))
+            try:
+                linkNew=BROWSER.find_element_by_xpath(strLink)
+            except:
+                try:
+                    linkNew=BROWSER.find_element_by_xpath(strLink2)
+                except:    
+                    print(f'I AM AN AD: {str(idx+1)} ')
+                    continue
+    
         hrefLink=linkNew.get_attribute('href')
         BROWSER.execute_script('window.open("'+hrefLink+'")','_blank')
-        secondWindowMechanism(lsContent,'/html/body/div[3]/div/main/div[1]/div/div/div/div/article/div/div/div/div/div/div[2]/div[3]')
+        secondWindowMechanism(lsContent,'html/body')
         print(f'FIRST SECTION Ready: {str(idx+1)} ')         
 
 
@@ -311,9 +330,14 @@ def secondWindowMechanism(lsContent,xPathElementSecondWindow):
             bAd=True   
         if strContent and (not bAd):
             textContent=strContent.text
+            #Clean the text
+            textContent=str(textContent).replace('\n','')
             #Translate and get English & spanish
             for text in getEnglishAndSpanishNew(textContent):
                 lsContent.append(text) 
+            print(lsContent[0])  
+            print('--------------------------') 
+            print(lsContent[1])  
         #Close Window 2
         BROWSER.close()
         time.sleep(4)
