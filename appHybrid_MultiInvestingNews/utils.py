@@ -1,8 +1,5 @@
 import json
 import os
-from typing import overload
-import googletrans
-from numpy import fabs
 from selenium import webdriver
 import chromedriver_autoinstaller
 import uuid
@@ -19,6 +16,7 @@ from wordcloud import WordCloud
 import matplotlib.pyplot as plt
 from nltk import tokenize
 from google_trans_new import google_translator
+from selenium.webdriver.common.keys import Keys
 
 BROWSER=''
 objControl=cInternalControl()
@@ -268,25 +266,46 @@ def readFromYahoo(option):
     if option=='market':
         BROWSER.get(dicWebSite['yahoofinance_market'])
     else:
-        BROWSER.get(dicWebSite['yahoofinance_news'])      
-    
-          
+        BROWSER.get(dicWebSite['yahoofinance_news']) 
+
+    #Scroll down infinite loading page
+    for x in range(1,200):
+        BROWSER.find_element_by_tag_name('body').send_keys(Keys.PAGE_DOWN)
+    #Main section of news
+    lsMainSection=devuelveListaElementos('/html/body/div[1]/div/div/div[1]/div/div[3]/div[1]/div/div[3]/div/div/div/ul/li')
+    for objNew in lsMainSection:
+        lsContent=list()
+        linkNew=None
+        idx= lsMainSection.index(objNew)
+        try:
+            linkNew=BROWSER.find_element_by_xpath(f'/html/body/div[1]/div/div/div[1]/div/div[3]/div[1]/div/div[3]/div/div/div/ul/li[{str(idx+1)}]/div/div/div[2]/h3/a')
+        except:
+            print(f'I AM AN AD: {str(idx+1)} ')
+            continue
+                
         
+        hrefLink=linkNew.get_attribute('href')
+        BROWSER.execute_script('window.open("'+hrefLink+'")','_blank')
+        secondWindowMechanism(lsContent,'/html/body/div[3]/div/main/div[1]/div/div/div/div/article/div/div/div/div/div/div[2]/div[3]')
+        print(f'FIRST SECTION Ready: {str(idx+1)} ')         
 
-                                           
 
-
+     
 
 def secondWindowMechanism(lsContent,xPathElementSecondWindow):
     if len(BROWSER.window_handles)>1:
+        bAd=False
         second_window=BROWSER.window_handles[1]
         BROWSER.switch_to.window(second_window)
         #Now in the second window
         time.sleep(5)
         #Get the text from second window and append it to lsContent
         strContent=None
-        strContent=devuelveElemento(xPathElementSecondWindow)
-        if strContent:
+        try:
+            strContent=BROWSER.find_element_by_xpath(xPathElementSecondWindow)
+        except NameError as error:
+            bAd=True   
+        if strContent and (not bAd):
             textContent=strContent.text
             #Translate and get English & spanish
             for text in getEnglishAndSpanishNew(textContent):
