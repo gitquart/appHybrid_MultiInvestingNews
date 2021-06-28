@@ -46,9 +46,9 @@ dicWebSite={
             'investopedia_market':'https://www.investopedia.com/markets-news-4427704',
             'investopedia_trading':'https://www.investopedia.com/trading-news-4689736',
             'cryptonews':'https://cryptonews.com/news/bitcoin-news/',
-            #End Ready
             'yahoofinance_market':'https://finance.yahoo.com/topic/stock-market-news',
             'yahoofinance_news':'https://finance.yahoo.com/news',
+            #End Ready
             'cnbc':'https://www.cnbc.com/',
             'fxstreet':'https://www.fxstreet.com/',
             'financiero':'https://www.elfinanciero.com.mx/'
@@ -309,8 +309,6 @@ def readFromYahoo(option):
         secondWindowMechanism(lsContent,'html/body')
         print(f'FIRST SECTION Ready: {str(idx+1)} ')         
 
-
-     
 
 def secondWindowMechanism(lsContent,xPathElementSecondWindow):
     if len(BROWSER.window_handles)>1:
