@@ -41,11 +41,12 @@ dicWebSite={
             #Start Ready
             'investing':'https://www.investing.com/news/commodities-news',
             'dailyfx': 'https://www.dailyfx.com/market-news/articles',
-            'investopedia_markets':'https://www.investopedia.com/markets-news-4427704',
+            'investopedia_market':'https://www.investopedia.com/markets-news-4427704',
             'investopedia_trading':'https://www.investopedia.com/trading-news-4689736',
             'cryptonews':'https://cryptonews.com/news/bitcoin-news/',
             #End Ready
-            'yahoofinance':'https://finance.yahoo.com/',
+            'yahoofinance_market':'https://finance.yahoo.com/topic/stock-market-news',
+            'yahoofinance_news':'https://finance.yahoo.com/news',
             'cnbc':'https://www.cnbc.com/',
             'fxstreet':'https://www.fxstreet.com/',
             'financiero':'https://www.elfinanciero.com.mx/'
@@ -58,6 +59,8 @@ lsSources=['Reuters','Investing.com','Bloomberg']
 #End of Investing.com items
 
 def getEnglishAndSpanishNew(sourceText):
+    #Translate and get English & spanish
+    #lsText has [0]: Original source, [1]: Translation
     lsRes=list()
     translator = google_translator() 
     result=translator.translate(sourceText,'es','en')
@@ -124,7 +127,8 @@ def readFromInvesting():
                 articleContent=devuelveElemento('/html/body/div[5]/section/div[3]')
                 time.sleep(3)
                 if articleContent:
-                    lsContent.append(articleContent.text)
+                    for text in getEnglishAndSpanishNew(articleContent.text):
+                        lsContent.append(text) 
             else:
                 #---To know how many windows are open----
                 time.sleep(4)
@@ -180,7 +184,6 @@ def readFromDailyFX():
         lsNews=None
         lsNews=devuelveListaElementos('/html/body/div[5]/div/div[3]/div/div[1]/div[1]/a')
         #Get the news
-        strContent=None
         for objNew in lsNews:
             lsContent=list()
             hrefLink=objNew.get_attribute('href')
@@ -195,7 +198,7 @@ def readFromInvestopedia(option):
     returnChromeSettings()
     time.sleep(4)
     if option=='market':
-        BROWSER.get(dicWebSite['investopedia_markets'])
+        BROWSER.get(dicWebSite['investopedia_market'])
     else:
         BROWSER.get(dicWebSite['investopedia_trading'])
 
@@ -203,10 +206,8 @@ def readFromInvestopedia(option):
     if lsFirstCard:
         for card in lsFirstCard:
             lsContent=list()
-            strTitle=None
             idx=None
             linkNew=None
-            strTitle=card.text
             idx= lsFirstCard.index(card)
             linkNew=devuelveElemento(f'/html/body/main/div[1]/div[2]/section/ul/li[{str(idx+1)}]/a')
             hrefLink=linkNew.get_attribute('href')
@@ -217,10 +218,8 @@ def readFromInvestopedia(option):
     if lsSecondCard:
         for card in lsSecondCard:
             lsContent=list()
-            strTitle=None
             idx=None
             linkNew=None
-            strTitle=card.text
             idx= lsSecondCard.index(card)
             linkNew=devuelveElemento(f'/html/body/main/div[2]/div[2]/ul/li[{str(idx+1)}]/a')
             hrefLink=linkNew.get_attribute('href')
@@ -261,7 +260,17 @@ def readFromCryptonews():
         BROWSER.execute_script('window.open("'+hrefLink+'")','_blank')
         secondWindowMechanism(lsContent,'/html/body/div[2]/article/div/div[2]')    
         print(f'SECOND SECTION Ready: {str(idx+1)} ')
-        
+
+
+def readFromYahoo(option):
+    returnChromeSettings()
+    time.sleep(4)
+    if option=='market':
+        BROWSER.get(dicWebSite['yahoofinance_market'])
+    else:
+        BROWSER.get(dicWebSite['yahoofinance_news'])      
+    
+          
         
 
                                            
@@ -280,10 +289,7 @@ def secondWindowMechanism(lsContent,xPathElementSecondWindow):
         if strContent:
             textContent=strContent.text
             #Translate and get English & spanish
-            lsText=list()
-            #lsText has [0]: Original source, [1]: Translation
-            lsText=getEnglishAndSpanishNew(textContent)
-            for text in lsText:
+            for text in getEnglishAndSpanishNew(textContent):
                 lsContent.append(text) 
         #Close Window 2
         BROWSER.close()
