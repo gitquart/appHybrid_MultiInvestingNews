@@ -1,6 +1,7 @@
 import json
 import os
 from typing import overload
+import googletrans
 from numpy import fabs
 from selenium import webdriver
 import chromedriver_autoinstaller
@@ -17,7 +18,7 @@ import nltk
 from wordcloud import WordCloud
 import matplotlib.pyplot as plt
 from nltk import tokenize
-from googletrans import Translator, constants
+from google_trans_new import google_translator
 
 BROWSER=''
 objControl=cInternalControl()
@@ -56,6 +57,14 @@ dicWebSite={
 lsSources=['Reuters','Investing.com','Bloomberg']
 #End of Investing.com items
 
+def getEnglishAndSpanishNew(sourceText):
+    lsRes=list()
+    translator = google_translator() 
+    result=translator.translate(sourceText,'es','en')
+    lsRes.append(sourceText)
+    lsRes.append(result)
+    
+    return lsRes
 
 def returnChromeSettings():
     global BROWSER
@@ -229,6 +238,7 @@ def readFromCryptonews():
     if btnLater:
         btnLater.click()
     BROWSER.switch_to.default_content()
+    #First Section of News
     lsFirstSection=devuelveListaElementos('/html/body/div[2]/section[1]/div/div')
     for objNew in lsFirstSection:
         lsContent=list()
@@ -237,7 +247,20 @@ def readFromCryptonews():
         linkNew=devuelveElemento(f'/html/body/div[2]/section[1]/div/div[{str(idx+1)}]/a')
         hrefLink=linkNew.get_attribute('href')
         BROWSER.execute_script('window.open("'+hrefLink+'")','_blank')
-        secondWindowMechanism(lsContent,'/html/body/div[2]/article/div')
+        secondWindowMechanism(lsContent,'/html/body/div[2]/article/div/div[2]')
+        print(f'FIRST SECTION Ready: {str(idx+1)} ')
+
+    #Second Section of News
+    lsSecondSection=devuelveListaElementos('/html/body/div[2]/section[2]/div[1]/div')
+    for objNew in lsSecondSection:
+        lsContent=list()
+        linkNew=None
+        idx= lsSecondSection.index(objNew)
+        linkNew=devuelveElemento(f'/html/body/div[2]/section[2]/div[1]/div[{str(idx+1)}]/a')
+        hrefLink=linkNew.get_attribute('href')
+        BROWSER.execute_script('window.open("'+hrefLink+'")','_blank')
+        secondWindowMechanism(lsContent,'/html/body/div[2]/article/div/div[2]')    
+        print(f'SECOND SECTION Ready: {str(idx+1)} ')
         
         
 
@@ -256,7 +279,12 @@ def secondWindowMechanism(lsContent,xPathElementSecondWindow):
         strContent=devuelveElemento(xPathElementSecondWindow)
         if strContent:
             textContent=strContent.text
-            lsContent.append(textContent) 
+            #Translate and get English & spanish
+            lsText=list()
+            #lsText has [0]: Original source, [1]: Translation
+            lsText=getEnglishAndSpanishNew(textContent)
+            for text in lsText:
+                lsContent.append(text) 
         #Close Window 2
         BROWSER.close()
         time.sleep(4)
