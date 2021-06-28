@@ -263,16 +263,20 @@ def readFromCryptonews():
 def readFromYahoo(option):
     returnChromeSettings()
     time.sleep(4)
+    strPathMainSection=None
     if option=='market':
         BROWSER.get(dicWebSite['yahoofinance_market'])
+        strPathMainSection='/html/body/div[1]/div/div/div[1]/div/div[3]/div[1]/div/div[3]/div/div/div/ul/li'
     else:
         BROWSER.get(dicWebSite['yahoofinance_news']) 
+        strPathMainSection='/html/body/div[1]/div/div/div[1]/div/div[3]/div[1]/div/div[2]/div/div/div/ul/li'
 
     #Scroll down infinite loading page
     for x in range(1,200):
         BROWSER.find_element_by_tag_name('body').send_keys(Keys.PAGE_DOWN)
     #Main section of news
-    lsMainSection=devuelveListaElementos('/html/body/div[1]/div/div/div[1]/div/div[3]/div[1]/div/div[3]/div/div/div/ul/li')
+                                          
+    lsMainSection=devuelveListaElementos(strPathMainSection)
     for objNew in lsMainSection:
         lsContent=list()
         linkNew=None
