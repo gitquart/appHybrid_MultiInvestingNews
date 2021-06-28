@@ -1,6 +1,6 @@
 import json
 import os
-from nltk import translate
+from nltk import text, translate
 from selenium import webdriver
 import chromedriver_autoinstaller
 import uuid
@@ -16,9 +16,11 @@ import nltk
 from wordcloud import WordCloud
 import matplotlib.pyplot as plt
 from nltk import tokenize
-from google_trans_new import google_translator
-#from translate import translator
+from deep_translator import GoogleTranslator
+#from google_trans_new import google_translator
+from translate import translator
 from selenium.webdriver.common.keys import Keys
+import html
 
 BROWSER=''
 objControl=cInternalControl()
@@ -58,22 +60,18 @@ dicWebSite={
 lsSources=['Reuters','Investing.com','Bloomberg']
 #End of Investing.com items
 
-def getEnglishAndSpanishNew(sourceText):
-    #Translate and get English & spanish
-    #lsText has [0]: Original source, [1]: Translation
-    lsRes=list()
-    translator= google_translator()
-    result=translator.translate(sourceText,'es','en')
-    lsRes.append(sourceText)
-    lsRes.append(result)
-    
-    return lsRes
 
 def returnChromeSettings():
     global BROWSER
     chromedriver_autoinstaller.install()
     options = Options()
     options.add_argument("--no-sandbox")
+    prefs = {
+      "translate_whitelists": {"en":"es"},
+      "translate":{"enabled":"true"}
+     }
+
+    options.add_experimental_option("prefs", prefs)
 
     if objControl.heroku:
         #Chrome configuration for heroku
@@ -127,8 +125,7 @@ def readFromInvesting():
                 articleContent=devuelveElemento('/html/body/div[5]/section/div[3]')
                 time.sleep(3)
                 if articleContent:
-                    for text in getEnglishAndSpanishNew(articleContent.text):
-                        lsContent.append(text) 
+                    lsContent.append(articleContent.text) 
             else:
                 #---To know how many windows are open----
                 time.sleep(4)
@@ -330,14 +327,8 @@ def secondWindowMechanism(lsContent,xPathElementSecondWindow):
             bAd=True   
         if strContent and (not bAd):
             textContent=strContent.text
-            #Clean the text
-            textContent=str(textContent).replace('\n','')
-            #Translate and get English & spanish
-            for text in getEnglishAndSpanishNew(textContent):
-                lsContent.append(text) 
-            print(lsContent[0])  
-            print('--------------------------') 
-            print(lsContent[1])  
+            lsContent.append(textContent) 
+           
         #Close Window 2
         BROWSER.close()
         time.sleep(4)
