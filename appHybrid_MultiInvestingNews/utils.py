@@ -50,9 +50,11 @@ dicWebSite={
             'yahoofinance_news':'https://finance.yahoo.com/news', #no pager
             'fxstreet':'https://www.fxstreet.com/news', #pager
             #End Ready
-            'cnbc':'https://www.cnbc.com/',
+            #Start: Questions about these news...
+            'financiero':'https://www.elfinanciero.com.mx/',
+            'cnbc':'https://www.cnbc.com/'
+            #End: Questions about these news...
             
-            'financiero':'https://www.elfinanciero.com.mx/'
             }
 
 #End of Common items
