@@ -40,7 +40,7 @@ file_all_words='wholecorpus\\All_words_from_all_News.txt'
 file_all_news='wholecorpus\\All_News.txt'
 #dicWebSites sorted by importance
 dicWebSite={
-            #Start Ready
+            
             'investing':'https://www.investing.com/news/commodities-news', #pager
             'dailyfx': 'https://www.dailyfx.com/market-news/articles', #pager
             'investopedia_market':'https://www.investopedia.com/markets-news-4427704', #no pager
@@ -49,10 +49,8 @@ dicWebSite={
             'yahoofinance_market':'https://finance.yahoo.com/topic/stock-market-news', #no pager
             'yahoofinance_news':'https://finance.yahoo.com/news', #no pager
             'fxstreet':'https://www.fxstreet.com/news', #pager
-            #End Ready
-            #Start: Questions about these news...
             'financiero':'https://www.elfinanciero.com.mx/mercados/' #no pager
-            #End: Questions about these news...
+            
             
             }
 
@@ -207,10 +205,8 @@ def readFromInvestopedia(option):
     if lsFirstCard:
         for card in lsFirstCard:
             lsContent=list()
-            idx=None
             linkNew=None
-            idx= lsFirstCard.index(card)
-            linkNew=devuelveElemento(f'/html/body/main/div[1]/div[2]/section/ul/li[{str(idx+1)}]/a')
+            linkNew=card.find_element_by_xpath('.//a')
             hrefLink=linkNew.get_attribute('href')
             BROWSER.execute_script('window.open("'+hrefLink+'")','_blank')
             secondWindowMechanism(lsContent,'/html/body/main/div[2]/article/div[2]/div[1]')
@@ -219,10 +215,8 @@ def readFromInvestopedia(option):
     if lsSecondCard:
         for card in lsSecondCard:
             lsContent=list()
-            idx=None
             linkNew=None
-            idx= lsSecondCard.index(card)
-            linkNew=devuelveElemento(f'/html/body/main/div[2]/div[2]/ul/li[{str(idx+1)}]/a')
+            linkNew=card.find_element_by_xpath('.//a')
             hrefLink=linkNew.get_attribute('href')
             BROWSER.execute_script('window.open("'+hrefLink+'")','_blank')
             secondWindowMechanism(lsContent,'/html/body/main/div[2]/article/div[2]/div[1]')
