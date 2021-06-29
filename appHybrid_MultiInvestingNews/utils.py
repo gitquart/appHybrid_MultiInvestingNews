@@ -174,7 +174,6 @@ def readFromInvesting():
         #query=f'update tbControl set page={str(page+1)} where id={str(objControl.idControl)}'
         #db.executeNonQuery(query)
 
-
 def readFromDailyFX():
     returnChromeSettings()
     for page in range(1,4):
@@ -191,7 +190,6 @@ def readFromDailyFX():
                  
         print('End of page')  
         BROWSER.quit()
-
 
 def readFromInvestopedia(option):
     returnChromeSettings()
@@ -253,8 +251,6 @@ def readFromCryptonews():
         BROWSER.execute_script('window.open("'+hrefLink+'")','_blank')
         secondWindowMechanism(lsContent,'/html/body/div[2]/article/div/div[2]')    
 
-
-
 def readFromYahoo(option):
     returnChromeSettings()
     time.sleep(4)
@@ -305,7 +301,6 @@ def readFromYahoo(option):
         secondWindowMechanism(lsContent,'html/body')
         print(f'FIRST SECTION Ready: {str(idx+1)} ')        
 
-
 def readFromFXNews():
     returnChromeSettings()
     BROWSER.get(dicWebSite['fxstreet'])
@@ -328,7 +323,7 @@ def readFromFXNews():
         secondWindowMechanism(lsContent,'/html/body/div[4]/div[2]/div/div/main/div/div[3]/div[1]/div/section/article/div[1]/div')
         print(f'Ready: {str(idx+1)} ')
 
-    linkNext= devuelveElemento('/html/body/div[4]/div[2]/div/div/div/main/div/div[2]/div[1]/div/div[2]/div/div[2]/section/div/div/div/section[2]/div/ul/li[9]/a') 
+    linkNext=devuelveElemento('/html/body/div[4]/div[2]/div/div/div/main/div/div[2]/div[1]/div/div[2]/div/div[2]/section/div/div/div/section[2]/div/ul/li[9]/a') 
     BROWSER.execute_script('arguments[0].click();',linkNext)  
         
 def readFromElFinanciero():
@@ -352,6 +347,7 @@ def readFromElFinanciero():
     print('Both sections')            
                 
 
+#SECTION - START OF COMMON METHODS
 
 def secondWindowMechanism(lsContent,xPathElementSecondWindow):
     if len(BROWSER.window_handles)>1:
@@ -557,6 +553,6 @@ def devuelveListaElementos(xPath):
     return ele     
 
 
-
+#SECTION - END OF COMMON METHODS
 
     
