@@ -48,9 +48,10 @@ dicWebSite={
             'cryptonews':'https://cryptonews.com/news/bitcoin-news/', #no pager
             'yahoofinance_market':'https://finance.yahoo.com/topic/stock-market-news', #no pager
             'yahoofinance_news':'https://finance.yahoo.com/news', #no pager
+            'fxstreet':'https://www.fxstreet.com/news', #pager
             #End Ready
             'cnbc':'https://www.cnbc.com/',
-            'fxstreet':'https://www.fxstreet.com/news', #pager
+            
             'financiero':'https://www.elfinanciero.com.mx/'
             }
 
@@ -66,10 +67,12 @@ def returnChromeSettings():
     chromedriver_autoinstaller.install()
     options = Options()
     options.add_argument("--no-sandbox")
+    
     prefs = {
       "translate_whitelists": {"en":"es"},
       "translate":{"enabled":"true"}
      }
+    
 
     options.add_experimental_option("prefs", prefs)
 
@@ -317,10 +320,24 @@ def readFromFXNews():
     time.sleep(10)      
     #Main section of News
     lsMainSection=devuelveListaElementos('/html/body/div[4]/div[2]/div/div/div/main/div/div[2]/div[1]/div/div[2]/div/div[2]/section/div/div/div/main/div/div')
+    """
+    Hint:
+    If you start an XPath expression with //, it begins searching from the root of document. 
+    To search relative to a particular element, do .// :
+    """
     for objNew in lsMainSection:
+        idx=lsMainSection.index(objNew)
         lsContent=list()
-        linkNew=None  
-        objNew.click() 
+        hrefLink=None
+        linkNew=objNew.find_element_by_xpath('.//a')  
+        hrefLink=linkNew.get_attribute('href')
+        BROWSER.execute_script('window.open("'+hrefLink+'")','_blank')
+        secondWindowMechanism(lsContent,'/html/body/div[4]/div[2]/div/div/main/div/div[3]/div[1]/div/section/article/div[1]/div')
+        print(f'FIRST SECTION Ready: {str(idx+1)} ')
+
+    linkNext= devuelveElemento('/html/body/div[4]/div[2]/div/div/div/main/div/div[2]/div[1]/div/div[2]/div/div[2]/section/div/div/div/section[2]/div/ul/li[9]/a') 
+    BROWSER.execute_script('arguments[0].click();',linkNext)  
+        
 
 
 def secondWindowMechanism(lsContent,xPathElementSecondWindow):
