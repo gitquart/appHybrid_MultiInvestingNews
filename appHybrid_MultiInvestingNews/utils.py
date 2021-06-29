@@ -335,7 +335,7 @@ def readFromFXNews():
         hrefLink=linkNew.get_attribute('href')
         BROWSER.execute_script('window.open("'+hrefLink+'")','_blank')
         secondWindowMechanism(lsContent,'/html/body/div[4]/div[2]/div/div/main/div/div[3]/div[1]/div/section/article/div[1]/div')
-        print(f'FIRST SECTION Ready: {str(idx+1)} ')
+        print(f'Ready: {str(idx+1)} ')
 
     linkNext= devuelveElemento('/html/body/div[4]/div[2]/div/div/div/main/div/div[2]/div[1]/div/div[2]/div/div[2]/section/div/div/div/section[2]/div/ul/li[9]/a') 
     BROWSER.execute_script('arguments[0].click();',linkNext)  
