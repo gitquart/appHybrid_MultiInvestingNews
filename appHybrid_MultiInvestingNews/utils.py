@@ -51,7 +51,7 @@ dicWebSite={
             'fxstreet':'https://www.fxstreet.com/news', #pager
             #End Ready
             #Start: Questions about these news...
-            'financiero':'https://www.elfinanciero.com.mx/'
+            'financiero':'https://www.elfinanciero.com.mx/mercados/' #no pager
             #End: Questions about these news...
             
             }
@@ -70,7 +70,7 @@ def returnChromeSettings():
     options.add_argument("--no-sandbox")
     
     prefs = {
-      "translate_whitelists": {"en":"es"},
+      #"translate_whitelists": {"en":"es"},
       "translate":{"enabled":"true"}
      }
     
@@ -339,6 +339,26 @@ def readFromFXNews():
     linkNext= devuelveElemento('/html/body/div[4]/div[2]/div/div/div/main/div/div[2]/div[1]/div/div[2]/div/div[2]/section/div/div/div/section[2]/div/ul/li[9]/a') 
     BROWSER.execute_script('arguments[0].click();',linkNext)  
         
+def readFromElFinanciero():
+    returnChromeSettings()
+    BROWSER.get(dicWebSite['financiero'])
+    strDivNews='list-container layout-section'
+    lsNewSection=devuelveListaElementos('/html/body/div[1]/section/div/div[2]/aside/div')
+    for div in lsNewSection:
+        className=div.get_attribute('class')
+        if className == strDivNews:
+            lsArticle=div.find_elements_by_xpath('.//article') 
+            for article in lsArticle:  
+                idx=lsArticle.index(article)
+                lsContent=list()
+                hrefLink=None
+                linkNew=article.find_element_by_xpath('.//a')  
+                hrefLink=linkNew.get_attribute('href')
+                BROWSER.execute_script('window.open("'+hrefLink+'")','_blank')
+                secondWindowMechanism(lsContent,'/html/body/div[1]/section/div/div[2]/div/article')
+                print(f'Ready: {str(idx+1)} ')
+    print('Both sections')            
+                
 
 
 def secondWindowMechanism(lsContent,xPathElementSecondWindow):
