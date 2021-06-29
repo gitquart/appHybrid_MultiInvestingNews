@@ -41,16 +41,16 @@ file_all_news='wholecorpus\\All_News.txt'
 #dicWebSites sorted by importance
 dicWebSite={
             #Start Ready
-            'investing':'https://www.investing.com/news/commodities-news',
-            'dailyfx': 'https://www.dailyfx.com/market-news/articles',
-            'investopedia_market':'https://www.investopedia.com/markets-news-4427704',
-            'investopedia_trading':'https://www.investopedia.com/trading-news-4689736',
-            'cryptonews':'https://cryptonews.com/news/bitcoin-news/',
-            'yahoofinance_market':'https://finance.yahoo.com/topic/stock-market-news',
-            'yahoofinance_news':'https://finance.yahoo.com/news',
+            'investing':'https://www.investing.com/news/commodities-news', #pager
+            'dailyfx': 'https://www.dailyfx.com/market-news/articles', #pager
+            'investopedia_market':'https://www.investopedia.com/markets-news-4427704', #no pager
+            'investopedia_trading':'https://www.investopedia.com/trading-news-4689736', #no pager
+            'cryptonews':'https://cryptonews.com/news/bitcoin-news/', #no pager
+            'yahoofinance_market':'https://finance.yahoo.com/topic/stock-market-news', #no pager
+            'yahoofinance_news':'https://finance.yahoo.com/news', #no pager
             #End Ready
             'cnbc':'https://www.cnbc.com/',
-            'fxstreet':'https://www.fxstreet.com/',
+            'fxstreet':'https://www.fxstreet.com/news', #pager
             'financiero':'https://www.elfinanciero.com.mx/'
             }
 
@@ -307,7 +307,20 @@ def readFromYahoo(option):
         hrefLink=linkNew.get_attribute('href')
         BROWSER.execute_script('window.open("'+hrefLink+'")','_blank')
         secondWindowMechanism(lsContent,'html/body')
-        print(f'FIRST SECTION Ready: {str(idx+1)} ')         
+        print(f'FIRST SECTION Ready: {str(idx+1)} ')        
+
+
+def readFromFXNews():
+    returnChromeSettings()
+    BROWSER.get(dicWebSite['fxstreet'])
+    print('Waiting banner to disappear...10 secs')
+    time.sleep(10)      
+    #Main section of News
+    lsMainSection=devuelveListaElementos('/html/body/div[4]/div[2]/div/div/div/main/div/div[2]/div[1]/div/div[2]/div/div[2]/section/div/div/div/main/div/div')
+    for objNew in lsMainSection:
+        lsContent=list()
+        linkNew=None  
+        objNew.click() 
 
 
 def secondWindowMechanism(lsContent,xPathElementSecondWindow):
