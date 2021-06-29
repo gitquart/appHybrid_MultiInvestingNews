@@ -51,8 +51,7 @@ dicWebSite={
             'fxstreet':'https://www.fxstreet.com/news', #pager
             #End Ready
             #Start: Questions about these news...
-            'financiero':'https://www.elfinanciero.com.mx/',
-            'cnbc':'https://www.cnbc.com/'
+            'financiero':'https://www.elfinanciero.com.mx/'
             #End: Questions about these news...
             
             }
