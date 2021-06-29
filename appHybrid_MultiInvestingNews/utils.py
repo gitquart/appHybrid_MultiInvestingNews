@@ -237,24 +237,22 @@ def readFromCryptonews():
     for objNew in lsFirstSection:
         lsContent=list()
         linkNew=None
-        idx= lsFirstSection.index(objNew)
-        linkNew=devuelveElemento(f'/html/body/div[2]/section[1]/div/div[{str(idx+1)}]/a')
+        linkNew=objNew.find_element_by_xpath('.//a')
         hrefLink=linkNew.get_attribute('href')
         BROWSER.execute_script('window.open("'+hrefLink+'")','_blank')
         secondWindowMechanism(lsContent,'/html/body/div[2]/article/div/div[2]')
-        print(f'FIRST SECTION Ready: {str(idx+1)} ')
+        
 
     #Second Section of News
     lsSecondSection=devuelveListaElementos('/html/body/div[2]/section[2]/div[1]/div')
     for objNew in lsSecondSection:
         lsContent=list()
         linkNew=None
-        idx= lsSecondSection.index(objNew)
-        linkNew=devuelveElemento(f'/html/body/div[2]/section[2]/div[1]/div[{str(idx+1)}]/a')
+        linkNew=objNew.find_element_by_xpath('.//a')
         hrefLink=linkNew.get_attribute('href')
         BROWSER.execute_script('window.open("'+hrefLink+'")','_blank')
         secondWindowMechanism(lsContent,'/html/body/div[2]/article/div/div[2]')    
-        print(f'SECOND SECTION Ready: {str(idx+1)} ')
+
 
 
 def readFromYahoo(option):
