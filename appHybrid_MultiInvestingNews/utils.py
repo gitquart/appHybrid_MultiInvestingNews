@@ -82,23 +82,23 @@ def readFromInvesting():
             #Check Source
             lsContent=[]
             strSource=''
-            txtSource=''
+            txtSource=None
             time.sleep(4)
             
             #For source: Those from "lsSource" list have "span", the rest have "div"
             try:
-                txtSource=BROWSER.find_elements_by_xpath(f'/html/body/div[5]/section/div[4]/article[{str(idx+1)}]/div[1]/span/span[1]')[0]
+                txtSource=devuelveElemento(f'/html/body/div[5]/section/div[4]/article[{str(idx+1)}]/div[1]/span/span[1]')
             except:
                 try:
-                    txtSource=BROWSER.find_elements_by_xpath(f'/html/body/div[5]/section/div[4]/article[{str(idx+1)}]/div[1]/div/span[1]')[0]
+                    txtSource=devuelveElemento(f'/html/body/div[5]/section/div[4]/article[{str(idx+1)}]/div[1]/div/span[1]')
                 except:
                     print(f'----------End of Page {str(page)} New {str(idx+1)} (Most probable an ad or No content)-------------')
                     continue
 
-
-            strSource=txtSource.text    
-            strSource=strSource.split(' ')[1]
-            print(f'Source :{strSource}')
+            if txtSource:
+                strSource=txtSource.text    
+                strSource=strSource.split(' ')[1]
+                print(f'Source :{strSource}')
             linkArticle=devuelveElemento(f'/html/body/div[5]/section/div[4]/article[{str(idx+1)}]/div[1]/a')
             BROWSER.execute_script("arguments[0].click();",linkArticle)
             if strSource in lsSources:
@@ -336,11 +336,10 @@ def getSourceAndTranslatedText(sourceText):
     lsTranslated=list()
     lsSourceText=list()
     translatedText=None
-    lsSourceText=sourceText.split('\n')
     #Remove text that may cause troubles: No content
-    for item in lsSourceText:
-        if item.isspace():
-            lsSourceText.remove(item)
+    for item in sourceText.split('\n'):
+        if not item.isspace() or len(item)==0:
+            lsSourceText.append(item)
     lsTranslated = GoogleTranslator(source='en', target='es').translate_batch(lsSourceText)
     translatedText=' '.join(lsTranslated)
 
@@ -471,7 +470,7 @@ def pre_process_data(content):
 def devuelveElementoDinamico(xPath,option,limit):
     try:
         if option==limit:
-            print(f'Element was not find from {str(option)} to {str(limit)}')
+            print(f'Element was not found from {str(option)} to {str(limit)}')
             os.sys.exit(0)
         e=None
         newXPath=xPath.replace('option',str(option))
