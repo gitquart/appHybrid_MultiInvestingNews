@@ -16,11 +16,13 @@ import nltk
 from wordcloud import WordCloud
 import matplotlib.pyplot as plt
 from nltk import tokenize
+#Deep Google translator
 from deep_translator import GoogleTranslator
-#from google_trans_new import google_translator
+#Google translator
+from google_trans_new import google_translator
+#Py-translate - Gives unicode error
 from translate import translator
 from selenium.webdriver.common.keys import Keys
-import html
 
 BROWSER=''
 objControl=cInternalControl()
@@ -59,29 +61,6 @@ dicWebSite={
 #Start of Investing.com items
 lsSources=['Reuters','Investing.com','Bloomberg']
 #End of Investing.com items
-
-
-def returnChromeSettings():
-    global BROWSER
-    chromedriver_autoinstaller.install()
-    options = Options()
-    options.add_argument("--no-sandbox")
-    
-    prefs = {
-      #"translate_whitelists": {"en":"es"},
-      "translate":{"enabled":"true"}
-     }
-    
-
-    options.add_experimental_option("prefs", prefs)
-
-    if objControl.heroku:
-        #Chrome configuration for heroku
-        options.binary_location=os.environ.get("GOOGLE_CHROME_BIN")
-        options.add_argument("--disable-dev-shm-usage")
-        BROWSER=webdriver.Chrome(executable_path=os.environ.get("CHROMEDRIVER_PATH"),chrome_options=options)
-    else:
-        BROWSER=webdriver.Chrome(options=options)  
 
         
 def readFromInvesting():
@@ -127,7 +106,12 @@ def readFromInvesting():
                 articleContent=devuelveElemento('/html/body/div[5]/section/div[3]')
                 time.sleep(3)
                 if articleContent:
-                    lsContent.append(articleContent.text) 
+                    sourceText=None
+                    sourceText=articleContent.text
+                    for text in getSourceAndTranslatedText(sourceText):
+                        lsContent.append(text)
+                   
+
             else:
                 #---To know how many windows are open----
                 time.sleep(4)
@@ -146,14 +130,12 @@ def readFromInvesting():
                     BROWSER.execute_script("arguments[0].click();",btnPopUpClose)
                  
             #START OF TF-IDF AND WORD CLOUD PROCESS
-            generateKeyWordsAndWordCloudFromTFDIF(lsContent,page,idx+1,'news_analysis','images_wordcloud',False)
+            #generateKeyWordsAndWordCloudFromTFDIF(lsContent,page,idx+1,'news_analysis','images_wordcloud',False)
             #End of TF IDF - Keyword process
             
 
             print(f'----------End of Page {str(page)} New {str(idx+1)}-------------')
             if strSource in lsSources:
-                #btnCommodity= devuelveElemento('/html/body/div[5]/section/div[1]/a')
-                #BROWSER.execute_script("arguments[0].click();",btnCommodity)
                 BROWSER.execute_script("window.history.go(-1)")      
             time.sleep(5)
 
@@ -189,6 +171,7 @@ def readFromDailyFX():
             secondWindowMechanism(lsContent,'/html/body/div[5]/div/main/article/section/div/div[1]/div[1]/div')        
                  
         print('End of page')  
+        
         BROWSER.quit()
 
 def readFromInvestopedia(option):
@@ -271,7 +254,7 @@ def readFromYahoo(option):
     for x in range(1,200):
         BROWSER.find_element_by_tag_name('body').send_keys(Keys.PAGE_DOWN)
     #Main section of news
-                                          
+    time.sleep(5)                                      
     lsMainSection=devuelveListaElementos(strPathMainSection)
     for objNew in lsMainSection:
         lsContent=list()
@@ -298,7 +281,7 @@ def readFromYahoo(option):
     
         hrefLink=linkNew.get_attribute('href')
         BROWSER.execute_script('window.open("'+hrefLink+'")','_blank')
-        secondWindowMechanism(lsContent,'html/body')
+        secondWindowMechanism(lsContent,'html/body',True)
         print(f'FIRST SECTION Ready: {str(idx+1)} ')        
 
 def readFromFXNews():
@@ -349,7 +332,45 @@ def readFromElFinanciero():
 
 #SECTION - START OF COMMON METHODS
 
-def secondWindowMechanism(lsContent,xPathElementSecondWindow):
+def getSourceAndTranslatedText(sourceText):
+    lsTranslated=list()
+    lsSourceText=list()
+    translatedText=None
+    lsSourceText=sourceText.split('\n')
+    #Remove text that may cause troubles: No content
+    for item in lsSourceText:
+        if not item:
+            lsSourceText.remove(item)
+    lsTranslated = GoogleTranslator(source='en', target='es').translate_batch(lsSourceText)
+    translatedText=' '.join(lsTranslated)
+
+    return [sourceText,translatedText]
+
+
+def returnChromeSettings():
+    global BROWSER
+    chromedriver_autoinstaller.install()
+    options = Options()
+    options.add_argument("--no-sandbox")
+    
+    prefs = {
+      #"translate_whitelists": {"en":"es"},
+      "translate":{"enabled":"true"}
+     }
+    
+    
+
+    options.add_experimental_option("prefs", prefs)
+
+    if objControl.heroku:
+        #Chrome configuration for heroku
+        options.binary_location=os.environ.get("GOOGLE_CHROME_BIN")
+        options.add_argument("--disable-dev-shm-usage")
+        BROWSER=webdriver.Chrome(executable_path=os.environ.get("CHROMEDRIVER_PATH"),chrome_options=options)
+    else:
+        BROWSER=webdriver.Chrome(options=options)  
+
+def secondWindowMechanism(lsContent,xPathElementSecondWindow,bTranslateFromAPI):
     if len(BROWSER.window_handles)>1:
         bAd=False
         second_window=BROWSER.window_handles[1]
@@ -363,8 +384,11 @@ def secondWindowMechanism(lsContent,xPathElementSecondWindow):
         except NameError as error:
             bAd=True   
         if strContent and (not bAd):
-            textContent=strContent.text
-            lsContent.append(textContent) 
+            sourceText=None
+            sourceText=strContent.text
+            for text in getSourceAndTranslatedText(sourceText):
+                lsContent.append(text)
+            
            
         #Close Window 2
         BROWSER.close()
