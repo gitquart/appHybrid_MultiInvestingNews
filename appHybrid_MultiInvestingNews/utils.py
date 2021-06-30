@@ -84,13 +84,15 @@ def readFromInvesting():
             strSource=''
             txtSource=None
             time.sleep(4)
-            
+            linkArticle=None
             #For source: Those from "lsSource" list have "span", the rest have "div"
+            #DO  NOT use "devuelveElemento" on "txtSource" because it can be an Ad, if it's an Ad then it would be
+            #forever looping
             try:
-                txtSource=devuelveElemento(f'/html/body/div[5]/section/div[4]/article[{str(idx+1)}]/div[1]/span/span[1]')
+                txtSource=BROWSER.find_element_by_xpath(f'/html/body/div[5]/section/div[4]/article[{str(idx+1)}]/div[1]/span/span[1]')
             except:
                 try:
-                    txtSource=devuelveElemento(f'/html/body/div[5]/section/div[4]/article[{str(idx+1)}]/div[1]/div/span[1]')
+                    txtSource=BROWSER.find_element_by_xpath(f'/html/body/div[5]/section/div[4]/article[{str(idx+1)}]/div[1]/div/span[1]')
                 except:
                     print(f'----------End of Page {str(page)} New {str(idx+1)} (Most probable an ad or No content)-------------')
                     continue
@@ -99,6 +101,7 @@ def readFromInvesting():
                 strSource=txtSource.text    
                 strSource=strSource.split(' ')[1]
                 print(f'Source :{strSource}')
+
             linkArticle=devuelveElemento(f'/html/body/div[5]/section/div[4]/article[{str(idx+1)}]/div[1]/a')
             BROWSER.execute_script("arguments[0].click();",linkArticle)
             if strSource in lsSources:
@@ -116,15 +119,15 @@ def readFromInvesting():
                 #---To know how many windows are open----
                 time.sleep(4)
                 linkPopUp=None
-                #Get the link with a recursive method
-                linkPopUp=devuelveElementoDinamico('/html/body/div[option]/div/div/div/a',6,15)
+                linkPopUp=BROWSER.find_element_by_partial_link_text('Continue Reading')
                 time.sleep(3)
                 if linkPopUp:
                     BROWSER.execute_script("arguments[0].click();",linkPopUp)
                 time.sleep(3)
                 secondWindowMechanism(lsContent,'/html/body')
                 btnPopUpClose=None
-                btnPopUpClose=devuelveElementoDinamico('/html/body/div[option]/span/i',6,15)
+                #Try finding the close pop up by class name
+                #btnPopUpClose=devuelveElementoDinamico('/html/body/div[option]/span/i',6,15)
                 time.sleep(3)
                 if btnPopUpClose:
                     BROWSER.execute_script("arguments[0].click();",btnPopUpClose)
@@ -335,12 +338,20 @@ def readFromElFinanciero():
 def getSourceAndTranslatedText(sourceText):
     lsTranslated=list()
     lsSourceText=list()
+    lsSourceTextToTranslate=list()
     translatedText=None
+    """
+    isspace is True when '__' or more, '' this would be False
+    """       
     #Remove text that may cause troubles: No content
-    for item in sourceText.split('\n'):
-        if not item.isspace() or len(item)==0:
-            lsSourceText.append(item)
-    lsTranslated = GoogleTranslator(source='en', target='es').translate_batch(lsSourceText)
+    lsSourceText=sourceText.split('\n')
+    for item in lsSourceText:
+        if (item.isspace()) or (item==''):
+            continue
+        else:
+            lsSourceTextToTranslate.append(item)
+
+    lsTranslated = GoogleTranslator(source='en', target='es').translate_batch(lsSourceTextToTranslate)
     translatedText=' '.join(lsTranslated)
 
     return [sourceText,translatedText]
