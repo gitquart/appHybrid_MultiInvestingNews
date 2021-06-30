@@ -339,7 +339,7 @@ def getSourceAndTranslatedText(sourceText):
     lsSourceText=sourceText.split('\n')
     #Remove text that may cause troubles: No content
     for item in lsSourceText:
-        if len(item)==0:
+        if item.isspace():
             lsSourceText.remove(item)
     lsTranslated = GoogleTranslator(source='en', target='es').translate_batch(lsSourceText)
     translatedText=' '.join(lsTranslated)
@@ -370,7 +370,7 @@ def returnChromeSettings():
     else:
         BROWSER=webdriver.Chrome(options=options)  
 
-def secondWindowMechanism(lsContent,xPathElementSecondWindow,bTranslateFromAPI):
+def secondWindowMechanism(lsContent,xPathElementSecondWindow):
     if len(BROWSER.window_handles)>1:
         bAd=False
         second_window=BROWSER.window_handles[1]
