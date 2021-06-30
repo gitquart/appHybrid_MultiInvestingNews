@@ -339,7 +339,7 @@ def getSourceAndTranslatedText(sourceText):
     lsSourceText=sourceText.split('\n')
     #Remove text that may cause troubles: No content
     for item in lsSourceText:
-        if not item:
+        if len(item)==0:
             lsSourceText.remove(item)
     lsTranslated = GoogleTranslator(source='en', target='es').translate_batch(lsSourceText)
     translatedText=' '.join(lsTranslated)
