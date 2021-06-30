@@ -126,8 +126,7 @@ def readFromInvesting():
                 time.sleep(3)
                 secondWindowMechanism(lsContent,'/html/body')
                 btnPopUpClose=None
-                #Try finding the close pop up by class name
-                #btnPopUpClose=devuelveElementoDinamico('/html/body/div[option]/span/i',6,15)
+                btnPopUpClose=BROWSER.find_element_by_class_name('closeIconBlack')
                 time.sleep(3)
                 if btnPopUpClose:
                     BROWSER.execute_script("arguments[0].click();",btnPopUpClose)
