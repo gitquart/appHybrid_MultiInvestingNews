@@ -4,7 +4,7 @@ def processYahoo():
     #Options : market, new
     try:
         print('-------Yahoo-------')
-        tool.readFromYahoo('market')
+        tool.readFromYahoo('new')
     except NameError as err:
         print(str(err))    
     

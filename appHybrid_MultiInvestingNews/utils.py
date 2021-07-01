@@ -111,7 +111,7 @@ def readFromInvesting():
                 if articleContent:
                     sourceText=None
                     sourceText=articleContent.text
-                    for text in getSourceAndTranslatedText(sourceText,'en','es'):
+                    for text in getSourceAndTranslatedText(sourceText,'es'):
                         lsContent.append(text)
                    
 
@@ -124,7 +124,7 @@ def readFromInvesting():
                 if linkPopUp:
                     BROWSER.execute_script("arguments[0].click();",linkPopUp)
                 time.sleep(3)
-                secondWindowMechanism(lsContent,'/html/body','en','es')
+                secondWindowMechanism(lsContent,'/html/body','es')
                 btnPopUpClose=None
                 btnPopUpClose=BROWSER.find_element_by_class_name('closeIconBlack')
                 time.sleep(3)
@@ -170,7 +170,7 @@ def readFromDailyFX():
             lsContent=list()
             hrefLink=objNew.get_attribute('href')
             BROWSER.execute_script('window.open("'+hrefLink+'")','_blank')
-            secondWindowMechanism(lsContent,'/html/body/div[5]/div/main/article/section/div/div[1]/div[1]/div','en','es')        
+            secondWindowMechanism(lsContent,'/html/body/div[5]/div/main/article/section/div/div[1]/div[1]/div','es')        
                  
         print('End of page')  
         
@@ -192,7 +192,7 @@ def readFromInvestopedia(option):
             linkNew=card.find_element_by_xpath('.//a')
             hrefLink=linkNew.get_attribute('href')
             BROWSER.execute_script('window.open("'+hrefLink+'")','_blank')
-            secondWindowMechanism(lsContent,'/html/body/main/div[2]/article/div[2]/div[1]','en','es')
+            secondWindowMechanism(lsContent,'/html/body/main/div[2]/article/div[2]/div[1]','es')
              
     lsSecondCard=devuelveListaElementos('/html/body/main/div[2]/div[2]/ul/li')          
     if lsSecondCard:
@@ -202,7 +202,7 @@ def readFromInvestopedia(option):
             linkNew=card.find_element_by_xpath('.//a')
             hrefLink=linkNew.get_attribute('href')
             BROWSER.execute_script('window.open("'+hrefLink+'")','_blank')
-            secondWindowMechanism(lsContent,'/html/body/main/div[2]/article/div[2]/div[1]','en','es')
+            secondWindowMechanism(lsContent,'/html/body/main/div[2]/article/div[2]/div[1]','es')
 
     #BROWSER.quit()
     
@@ -223,7 +223,7 @@ def readFromCryptonews():
         linkNew=objNew.find_element_by_xpath('.//a')
         hrefLink=linkNew.get_attribute('href')
         BROWSER.execute_script('window.open("'+hrefLink+'")','_blank')
-        secondWindowMechanism(lsContent,'/html/body/div[2]/article/div/div[2]','en','es')
+        secondWindowMechanism(lsContent,'/html/body/div[2]/article/div/div[2]','es')
         
 
     #Second Section of News
@@ -234,7 +234,7 @@ def readFromCryptonews():
         linkNew=objNew.find_element_by_xpath('.//a')
         hrefLink=linkNew.get_attribute('href')
         BROWSER.execute_script('window.open("'+hrefLink+'")','_blank')
-        secondWindowMechanism(lsContent,'/html/body/div[2]/article/div/div[2]','en','es')    
+        secondWindowMechanism(lsContent,'/html/body/div[2]/article/div/div[2]','es')    
 
 def readFromYahoo(option):
     returnChromeSettings()
@@ -286,7 +286,6 @@ def readFromYahoo(option):
         secondWindowMechanism(lsContent,'html/body','en','es')
         print(f'FIRST SECTION Ready: {str(idx+1)} ')        
 
-
 def readFromFXNews():
     returnChromeSettings()
     BROWSER.get(dicWebSite['fxstreet'])
@@ -306,7 +305,7 @@ def readFromFXNews():
         linkNew=objNew.find_element_by_xpath('.//a')  
         hrefLink=linkNew.get_attribute('href')
         BROWSER.execute_script('window.open("'+hrefLink+'")','_blank')
-        secondWindowMechanism(lsContent,'/html/body/div[4]/div[2]/div/div/main/div/div[3]/div[1]/div/section/article/div[1]/div','en','es')
+        secondWindowMechanism(lsContent,'/html/body/div[4]/div[2]/div/div/main/div/div[3]/div[1]/div/section/article/div[1]/div','es')
         print(f'Ready: {str(idx+1)} ')
 
     linkNext=devuelveElemento('/html/body/div[4]/div[2]/div/div/div/main/div/div[2]/div[1]/div/div[2]/div/div[2]/section/div/div/div/section[2]/div/ul/li[9]/a') 
@@ -328,31 +327,46 @@ def readFromElFinanciero():
                 linkNew=article.find_element_by_xpath('.//a')  
                 hrefLink=linkNew.get_attribute('href')
                 BROWSER.execute_script('window.open("'+hrefLink+'")','_blank')
-                secondWindowMechanism(lsContent,'/html/body/div[1]/section/div/div[2]/div/article','es','en')
+                secondWindowMechanism(lsContent,'/html/body/div[1]/section/div/div[2]/div/article','en')
                 print(f'Ready: {str(idx+1)} ')
     print('Both sections')            
                 
 
 #SECTION - START OF COMMON METHODS
 
-def getSourceAndTranslatedText(sourceText,srcLan,tgtLang):
+def getSourceAndTranslatedText(sourceText,tgtLang):
     lsTranslated=list()
     lsSourceText=list()
-    translatedText=None
+   
     """
     isspace is True when '__' or more, '' this would be False
     """       
     #Remove text that may cause troubles: No content
     lsSourceText=sourceText.split('\n')
+    #Analize every character in item, if it remains "space" , wipe it out
     for item in lsSourceText:
-        if (item.isspace()) or (not item):
-            lsSourceText.remove(item)
+        newString=''
+        for character in str(item):
+            if character.isalnum() or character.isspace() or (not character):
+                newString+=character
+                continue
+
+        idx=lsSourceText.index(item)  
+        lsSourceText[idx]=newString     
+        #After each character process, if it remains on space or not string, wipe it out
+        if (lsSourceText[idx].isspace()) or (not lsSourceText[idx]):
+            lsSourceText.pop(idx)
+
+             
       
-    lsTranslated = GoogleTranslator(source=srcLan, target=tgtLang).translate_batch(lsSourceText)
-    translatedText=' '.join(lsTranslated)
+    lsTranslated = GoogleTranslator(target=tgtLang).translate_batch(lsSourceText)
+    #Cleaning lsTranslated
+    for item in lsTranslated:
+        if item is None:
+            lsTranslated.remove(item)
 
-    return [sourceText,translatedText]
-
+            
+    return [sourceText,' '.join(lsTranslated)]
 
 def returnChromeSettings():
     global BROWSER
@@ -377,7 +391,7 @@ def returnChromeSettings():
     else:
         BROWSER=webdriver.Chrome(options=options)  
 
-def secondWindowMechanism(lsContent,xPathElementSecondWindow,srcLang,tgtLang):
+def secondWindowMechanism(lsContent,xPathElementSecondWindow,tgtLang):
     if len(BROWSER.window_handles)>1:
         bAd=False
         second_window=BROWSER.window_handles[1]
@@ -393,7 +407,7 @@ def secondWindowMechanism(lsContent,xPathElementSecondWindow,srcLang,tgtLang):
         if strContent and (not bAd):
             sourceText=None
             sourceText=strContent.text
-            for text in getSourceAndTranslatedText(sourceText,srcLang,tgtLang):
+            for text in getSourceAndTranslatedText(sourceText,tgtLang):
                 lsContent.append(text)
             
            
