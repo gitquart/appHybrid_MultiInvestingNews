@@ -1,13 +1,10 @@
 import json
 import os
-from nltk import text, translate
 from selenium import webdriver
 import chromedriver_autoinstaller
-import uuid
 import time
 from InternalControl import cInternalControl
 from selenium.webdriver.chrome.options import Options
-from fake_useragent import UserAgent
 from sklearn.feature_extraction.text import TfidfVectorizer
 import re
 import pandas as pd
@@ -18,10 +15,6 @@ import matplotlib.pyplot as plt
 from nltk import tokenize
 #Deep Google translator
 from deep_translator import GoogleTranslator
-#Google translator
-from google_trans_new import google_translator
-#Py-translate - Gives unicode error
-from translate import translator
 from selenium.webdriver.common.keys import Keys
 
 BROWSER=''
@@ -113,8 +106,6 @@ def readFromInvesting():
                     sourceText=articleContent.text
                     for text in getSourceAndTranslatedText(sourceText,'es'):
                         lsContent.append(text)
-                   
-
             else:
                 #---To know how many windows are open----
                 time.sleep(4)
@@ -172,9 +163,9 @@ def readFromDailyFX():
             BROWSER.execute_script('window.open("'+hrefLink+'")','_blank')
             secondWindowMechanism(lsContent,'/html/body/div[5]/div/main/article/section/div/div[1]/div[1]/div','es')        
                  
-        print('End of page')  
+        print(f'End of page {str(page)}')  
         
-        BROWSER.quit()
+    BROWSER.quit()
 
 def readFromInvestopedia(option):
     returnChromeSettings()

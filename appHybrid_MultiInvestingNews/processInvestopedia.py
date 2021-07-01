@@ -4,7 +4,7 @@ import threading
 def processInvestopedia():
     #options: market, trading
     try:
-        tool.readFromInvestopedia('trading')   
+        tool.readFromInvestopedia('market')   
     except NameError as err:
         print(str(err))    
     
