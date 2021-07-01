@@ -12,6 +12,9 @@ Web sites to read:
 
 1) Testing Documentation
 
+1.1)Testing with sites and translation
+Good results: FXNews, El Financiero
+
 2) Instructions to read web sites:
 
 
