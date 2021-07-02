@@ -366,8 +366,8 @@ def returnChromeSettings():
     options.add_argument("--no-sandbox")
     
     prefs = {
-      #"translate_whitelists": {"en":"es"},
-      #"translate":{"enabled":"true"}
+      "translate_whitelists": {"es":"en"},
+      "translate":{"enabled":"true"}
      }
     
     
