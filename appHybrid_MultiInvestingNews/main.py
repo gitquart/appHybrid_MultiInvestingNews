@@ -3,11 +3,12 @@ import utils as tool
 
 def main():
     try:
-        mainOption='Investing'
+        mainOption='Financiero'
         print(f'-------Reading from {mainOption}-------')
         if mainOption == 'Investing':
             tool.readFromInvesting()
         if mainOption == 'DailyFX':
+            #For demo
             tool.readFromDailyFX()
         if mainOption == 'Investopedia':
             #options: market, trading
@@ -20,6 +21,7 @@ def main():
         if mainOption == 'FXNews':
             tool.readFromFXNews() 
         if mainOption == 'Financiero':
+            #For demo
             tool.readFromElFinanciero()                      
     except NameError as err:
         print(str(err))    
