@@ -16,6 +16,7 @@ from nltk import tokenize
 #Deep Google translator
 from deep_translator import GoogleTranslator
 from selenium.webdriver.common.keys import Keys
+import base64
 
 BROWSER=''
 objControl=cInternalControl()
@@ -75,7 +76,9 @@ def readFromInvesting():
             #Check Source
             lsContent=[]
             strTitle=None
-            strSource=''
+            strSource=None
+            txtDate=None
+            strDate=None
             txtSource=None
             time.sleep(4)
             linkArticle=None
@@ -84,9 +87,11 @@ def readFromInvesting():
             #forever looping
             try:
                 txtSource=BROWSER.find_element_by_xpath(f'/html/body/div[5]/section/div[4]/article[{str(idx+1)}]/div[1]/span/span[1]')
+                txtDate=BROWSER.find_element_by_xpath(f'/html/body/div[5]/section/div[4]/article[{str(idx+1)}]/div[1]/span/span[2]')
             except:
                 try:
                     txtSource=BROWSER.find_element_by_xpath(f'/html/body/div[5]/section/div[4]/article[{str(idx+1)}]/div[1]/div/span[1]')
+                    txtDate=BROWSER.find_element_by_xpath(f'/html/body/div[5]/section/div[4]/article[{str(idx+1)}]/div[1]/div/span[2]')
                 except:
                     print(f'----------End of Page {str(page)} New {str(idx+1)} (Most probable an ad or No content)-------------')
                     continue
@@ -95,6 +100,14 @@ def readFromInvesting():
                 strSource=txtSource.text    
                 strSource=strSource.split(' ')[1]
                 print(f'Source :{strSource}')
+
+            if txtDate:
+                strDate=txtDate.text  
+                strDate=strDate.strip() 
+                #Get hours to substract from current time
+                chunks=strDate.split(' ')
+                intHrs=int(chunks[1])
+
 
             linkArticle=devuelveElemento(f'/html/body/div[5]/section/div[4]/article[{str(idx+1)}]/div[1]/a')
             BROWSER.execute_script("arguments[0].click();",linkArticle)
@@ -128,10 +141,19 @@ def readFromInvesting():
                     BROWSER.execute_script("arguments[0].click();",btnPopUpClose)
                  
             #START OF TF-IDF AND WORD CLOUD PROCESS
-            #generateKeyWordsAndWordCloudFromTFDIF(lsContent,page,idx+1,'news_analysis','images_wordcloud',False)
+            #generateKeyWordsAndWordCloudFromTFDIF(lsContent,page,idx+1,'news_analysis','images_wordcloud',False,False)
             #End of TF IDF - Keyword process
-            
             #Start of PostgreSQL
+            #Convert the original content to base64 to check if we have it already
+            sbytes=None
+            #Tutorial : https://base64.guru/developers/python/examples/decode-pdf
+            #Convert to base64 the original text (position 0)
+            sbytes = base64.b64encode(bytes(lsContent[0],'utf-8'))
+            sDecoded=sbytes.decode('utf-8')
+            #For date: In investing.com every new from today will have the label "Source -  # hrs ago",
+            #Any other new from past days will have its correspondant date
+
+            
 
             #End of PostgreSQL
             print(f'----------End of Page {str(page)} New {str(idx+1)}-------------')
@@ -147,7 +169,7 @@ def readFromInvesting():
             print(f'Generating complete TF-IDF until page {str(page)}')
             BROWSER.quit()
             #START OF TF-IDF AND WORD CLOUD PROCESS
-            generateKeyWordsAndWordCloudFromTFDIF(lsContentCorpus,None,None,'wholecorpus','wholecorpus',False)
+            generateKeyWordsAndWordCloudFromTFDIF(lsContentCorpus,None,None,'wholecorpus','wholecorpus',False,False)
             #End of TF IDF - Keyword process
             print('All td idf done...')
             os.sys.exit(0) 
@@ -291,11 +313,6 @@ def readFromFXNews():
     time.sleep(10)      
     #Main section of News
     lsMainSection=devuelveListaElementos('/html/body/div[4]/div[2]/div/div/div/main/div/div[2]/div[1]/div/div[2]/div/div[2]/section/div/div/div/main/div/div')
-    """
-    Hint:
-    If you start an XPath expression with //, it begins searching from the root of document. 
-    To search relative to a particular element, do .// :
-    """
     for objNew in lsMainSection:
         idx=lsMainSection.index(objNew)
         lsContent=list()
@@ -416,7 +433,7 @@ def secondWindowMechanism(lsContent,xPathElementSecondWindow,tgtLang):
         first_window=BROWSER.window_handles[0]
         BROWSER.switch_to.window(first_window)
 
-def generateKeyWordsAndWordCloudFromTFDIF(lsContent,page,no_new,folderKeyword,folderImage,bPrintReport):
+def generateKeyWordsAndWordCloudFromTFDIF(lsContent,page,no_new,folderKeyword,folderImage,bPrintReport,bWordCloud):
     #This implementation of code is based on : 
     # https://towardsdatascience.com/tf-idf-explained-and-python-sklearn-implementation-b020c5e83275
     strTop=''
@@ -459,19 +476,20 @@ def generateKeyWordsAndWordCloudFromTFDIF(lsContent,page,no_new,folderKeyword,fo
             printToFile(file_New_Keywords,f'-------------------First {str(keywordsLimit)} Important Keywords--------------------\n')
             printToFile(file_New_Keywords,f'-------------------Word , Tf-idf value--------------------\n')
             
+        
         dictWord_TF_IDF={}
         for row in df_Sliced.iterrows():
             line=str(row[1].name)+' , '+str(row[1].values[0])
             dictWord_TF_IDF[str(row[1].name)]=float(str(row[1].values[0]))
             if bPrintReport:
                 printToFile(file_New_Keywords,line+'\n')
-                
-        #Create WorldCloud from any dictionary (Ex: Word, Freq; Word, TF-IDF,....{Word, AnyValue})
-        if contentSize==1:
-            image_file=folderImage+'\\image_page_'+str(page)+'_new_'+str(no_new)+'_'+str(keywordsLimit)+'_keyword.jpeg'
-        else:
-            image_file=folderImage+'\\wholecorpusImage_'+str(keywordsLimit)+'keyword.jpeg'    
-        createWordCloud(image_file,dictWord_TF_IDF)
+        if bWordCloud:        
+            #Create WorldCloud from any dictionary (Ex: Word, Freq; Word, TF-IDF,....{Word, AnyValue})
+            if contentSize==1:
+                image_file=folderImage+'\\image_page_'+str(page)+'_new_'+str(no_new)+'_'+str(keywordsLimit)+'_keyword.jpeg'
+            else:
+                image_file=folderImage+'\\wholecorpusImage_'+str(keywordsLimit)+'keyword.jpeg'    
+            createWordCloud(image_file,dictWord_TF_IDF)
         #END OF TF-IDF AND WORD CLOUD PROCESS
             
         del dictWord_TF_IDF

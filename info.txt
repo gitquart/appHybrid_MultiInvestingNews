@@ -28,5 +28,11 @@ Para todos los sitios:
 -Obtener las noticias en español e inglés
 -Leer todas las noticias (no filtrar por título)
 
+Hints:
+For Xpath:
+    - //  : it begins searching from the root of document. 
+    - .// :To search relative to a particular element
+    
+
 
 
