@@ -74,6 +74,7 @@ def readFromInvesting():
             print(f'----------Start of Page {str(page)} New {str(idx+1)}-------------')
             #Check Source
             lsContent=[]
+            strTitle=None
             strSource=''
             txtSource=None
             time.sleep(4)
@@ -98,8 +99,12 @@ def readFromInvesting():
             linkArticle=devuelveElemento(f'/html/body/div[5]/section/div[4]/article[{str(idx+1)}]/div[1]/a')
             BROWSER.execute_script("arguments[0].click();",linkArticle)
             if strSource in lsSources:
-                #Case: Sources which news open in Investing.com
+                articleContent=None
+                articleTitle=None
+                #Case: Sources which news open in Investing.com platform
                 articleContent=devuelveElemento('/html/body/div[5]/section/div[3]')
+                articleTitle=BROWSER.find_element_by_class_name('articleHeader')
+                strTitle=articleTitle.text
                 time.sleep(3)
                 if articleContent:
                     sourceText=None
@@ -126,7 +131,9 @@ def readFromInvesting():
             #generateKeyWordsAndWordCloudFromTFDIF(lsContent,page,idx+1,'news_analysis','images_wordcloud',False)
             #End of TF IDF - Keyword process
             
+            #Start of PostgreSQL
 
+            #End of PostgreSQL
             print(f'----------End of Page {str(page)} New {str(idx+1)}-------------')
             if strSource in lsSources:
                 BROWSER.execute_script("window.history.go(-1)")      

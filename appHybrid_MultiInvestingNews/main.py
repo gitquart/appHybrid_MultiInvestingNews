@@ -3,7 +3,7 @@ import utils as tool
 
 def main():
     try:
-        mainOption='Financiero'
+        mainOption='Investing'
         print(f'-------Reading from {mainOption}-------')
         if mainOption == 'Investing':
             tool.readFromInvesting()
