@@ -18,7 +18,7 @@ from deep_translator import GoogleTranslator
 from selenium.webdriver.common.keys import Keys
 import base64
 from datetime import datetime, timedelta
-
+import postgresql as bd
 BROWSER=''
 objControl=cInternalControl()
 nltk.download('stopwords')
@@ -84,6 +84,7 @@ def readFromInvesting():
             txtSource=None
             linkArticle=None
             strDate=None
+            sbytes=None
             lsKeyWordsOriginal=list()
             lsKeyWordsTranslated=list()
             #Start - PostgreSQL fields
@@ -191,15 +192,20 @@ def readFromInvesting():
             del df_tfidf_translated
             fieldListOfKeyWordsTranslated=','.join(lsKeyWordsTranslated)
             #End of TF IDF - Keyword process
-            
-
-            #Start of PostgreSQL New Insertion
+        
             #Convert the original content to base64 to check if we have it already
-            sbytes=None
             #Tutorial : https://base64.guru/developers/python/examples/decode-pdf
             #Convert to base64 the original text (position 0)
             sbytes = base64.b64encode(bytes(lsContentOriginal[0],'utf-8'))
             fieldBase64NewContent=sbytes.decode('utf-8')
+            #Start of PostgreSQL New Insertion
+
+            query=f"select id from tbNew where txtBase64_contentoriginal='{fieldBase64NewContent}'"
+            lsRes=bd.getQuery(query)
+            if lsRes:
+                print('No')
+            else:
+                print('22')    
 
             print('...')
             
