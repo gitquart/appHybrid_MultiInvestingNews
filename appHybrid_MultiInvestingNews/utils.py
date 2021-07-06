@@ -50,6 +50,8 @@ dicWebSite={
             
             
             }
+lsCommodity=['crude oil','oil','brent','natural gas','gold','silver','copper','coffee'] 
+fieldCommodity=None        
 
 #End of Common items
 
@@ -90,9 +92,12 @@ def readFromInvesting():
             #Start - PostgreSQL fields
             fieldTimeStamp=None
             fieldBase64NewContent=None
-            fieldCompleteHTML=False
+            fieldCompleteHTML=0
             fieldListOfKeyWordsOriginal=None
             fieldListOfKeyWordsTranslated=None
+            fieldTitle='No title'
+            global fieldCommodity
+            fieldCommodity=None
             #End -  PostgreSQL Fields
             time.sleep(4)
             #For source: Those from "lsSource" list have "span", the rest have "div"
@@ -140,7 +145,8 @@ def readFromInvesting():
                 date_time_new=datetime.now() - timedelta(minutes=intAmountToSubstract)  
 
             # https://strftime.org/ : This format %Y-%m-%d %H:%M gets 24 hour based.
-            fieldTimeStamp = date_time_new.strftime("%Y-%m-%d %H:%M")     
+            fieldTimeStamp = date_time_new.strftime("%Y-%m-%d %H:%M")   
+              
             
             #End of field Time setting
             if strSource in lsSources:
@@ -150,29 +156,48 @@ def readFromInvesting():
                 articleContent=devuelveElemento('/html/body/div[5]/section/div[3]')
                 articleTitle=BROWSER.find_element_by_class_name('articleHeader')
                 strTitle=articleTitle.text
+                strTitleLower=strTitle.lower()
+                for commodity in lsCommodity:
+                    if commodity in strTitleLower:
+                        fieldCommodity=commodity
+                        break
+
+                #If the title does't have any commodity at all, then go to the next new
+                if fieldCommodity is None:
+                    print(f'----------End of Page {str(page)} New {str(idx+1)} NO COMMODITY FOUND-------------')
+                    BROWSER.execute_script("window.history.go(-1)")
+                    continue
+
+                fieldTitle=strTitle
                 time.sleep(3)
                 if articleContent:
                     sourceText=None
                     sourceText=articleContent.text
-                    lsContentOriginal.append(sourceText)
-                    for text in getSourceAndTranslatedText(sourceText,'es'):
-                        lsContentTranslated.append(text)
+                    lsResult=list()
+                    lsResult=getSourceAndTranslatedText(sourceText,'es')
+                    lsContentOriginal.append(lsResult[0])
+                    lsContentTranslated.append(lsResult[1])
             else:
                 #---To know how many windows are open----
                 time.sleep(4)
-                fieldCompleteHTML=True
+                fieldCompleteHTML=1
                 linkPopUp=None
                 linkPopUp=BROWSER.find_element_by_partial_link_text('Continue Reading')
                 time.sleep(3)
                 if linkPopUp:
                     BROWSER.execute_script("arguments[0].click();",linkPopUp)
                 time.sleep(3)
-                secondWindowMechanism(lsContentOriginal,'/html/body','es')
+                res=None
+                res=secondWindowMechanism(lsContentOriginal,lsContentTranslated,'/html/body','es')
                 btnPopUpClose=None
                 btnPopUpClose=BROWSER.find_element_by_class_name('closeIconBlack')
                 time.sleep(3)
                 if btnPopUpClose:
                     BROWSER.execute_script("arguments[0].click();",btnPopUpClose)
+
+                if not res:
+                    print(f'----------End of Page {str(page)} New {str(idx+1)} NO COMMODITY FOUND-------------')
+                    continue    
                  
             #START OF TF-IDF - keyword process
             """
@@ -198,19 +223,23 @@ def readFromInvesting():
             #Convert to base64 the original text (position 0)
             sbytes = base64.b64encode(bytes(lsContentOriginal[0],'utf-8'))
             fieldBase64NewContent=sbytes.decode('utf-8')
+            #This "test" variables gets again the original content, so by the example
+            #it's decoded with utf-8 twice
+            #test=base64.b64decode(fieldBase64NewContent).decode('utf-8')
             #Start of PostgreSQL New Insertion
 
             query=f"select id from tbNew where txtBase64_contentoriginal='{fieldBase64NewContent}'"
             lsRes=bd.getQuery(query)
-            if lsRes:
-                print('No')
+            if not lsRes:
+                #Case: The new is not in table, hence insert it.
+                strFields='(txtTitle,txtNew_content_Original,txtNew_content_Translated,txtBase64_contentOriginal,tspDateTime,commodity,lsKeywordsOriginal,lsKeyWordsTranslated,completeHTML)'
+                strValues=f"('{strTitle}','{lsContentOriginal[0]}','{lsContentTranslated[0]}','{fieldBase64NewContent}','{fieldTimeStamp}','{fieldCommodity}','{fieldListOfKeyWordsOriginal}','{fieldListOfKeyWordsTranslated}',{fieldCompleteHTML})"
+                st=f"insert into tbNew {strFields} values {strValues} "
+                bd.executeNonQuery(st)
             else:
-                print('22')    
-
-            print('...')
-            
-
-            
+                print('New already stored!')    
+              
+      
 
             #End of PostgreSQL New Insertion
             print(f'----------End of Page {str(page)} New {str(idx+1)}-------------')
@@ -412,6 +441,7 @@ def readFromElFinanciero():
 #SECTION - START OF COMMON METHODS
 
 def getSourceAndTranslatedText(sourceText,tgtLang):
+    #getSourceAndTranslatedText returns both (original and translated text) clean.
     lsTranslated=list()
     lsSourceText=list()
    
@@ -443,7 +473,7 @@ def getSourceAndTranslatedText(sourceText,tgtLang):
             lsTranslated.remove(item)
 
             
-    return [' '.join(lsTranslated)]
+    return [' '.join(lsSourceText),' '.join(lsTranslated)]
 
 def returnChromeSettings():
     global BROWSER
@@ -470,6 +500,8 @@ def returnChromeSettings():
 
 def secondWindowMechanism(lsContent,lsContentTranslated,xPathElementSecondWindow,tgtLang):
     if len(BROWSER.window_handles)>1:
+        global fieldCommodity
+        res=None
         bAd=False
         second_window=BROWSER.window_handles[1]
         BROWSER.switch_to.window(second_window)
@@ -484,16 +516,31 @@ def secondWindowMechanism(lsContent,lsContentTranslated,xPathElementSecondWindow
         if strContent and (not bAd):
             sourceText=None
             sourceText=strContent.text
-            for text in getSourceAndTranslatedText(sourceText,tgtLang):
-                lsContentTranslated.append(text)
+            sourceTextLower=sourceText.lower()
+            for commodity in lsCommodity:
+                if commodity in sourceTextLower:
+                    fieldCommodity=commodity
+                    break
+
+            #If the content does't have any commodity word at all, then go to the next new
+            if fieldCommodity is None:
+                res=False
+            else:
+                lsResult=list()
+                lsResult=getSourceAndTranslatedText(sourceText,tgtLang)
+                lsContent.append(lsResult[0])
+                lsContentTranslated.append(lsResult[1])
+                res=True
             
            
-        #Close Window 2
-        BROWSER.close()
-        time.sleep(4)
-        #Now in First window
-        first_window=BROWSER.window_handles[0]
-        BROWSER.switch_to.window(first_window)
+            #Close Window 2
+            BROWSER.close()
+            time.sleep(4)
+            #Now in First window
+            first_window=BROWSER.window_handles[0]
+            BROWSER.switch_to.window(first_window)
+
+            return res
 
 def getCompleteListOfKeyWords(lsContent):
     #This implementation of code is based on : 
