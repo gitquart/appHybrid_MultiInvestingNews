@@ -1,0 +1,41 @@
+
+
+CREATE TABLE tbControl (
+        ID INT primary key,
+        app varchar(50),
+        limit_iteration int,
+        lsControl varchar(50),
+        noinfolimit int,
+        page int,
+        query varchar(50)
+);
+
+
+insert into tbcontrol  values (1,'Trading news search',0,'',0,1,'No query');
+
+create table tbCommonTools
+(
+        ID INT primary key,
+        lsOwnStopWords text
+
+
+
+)
+
+select app,page from tbcontrol where id=1;
+
+update tbcontrol  set page=1 where id=1;
+
+/'News content'/
+CREATE TABLE tbNew (
+        ID SERIAL primary key,
+        txtTitle text,
+        txtNew_content_Original text,
+        txtNew_content_Translated text,
+        txtBase64_contentOriginal text,
+        tspDateTime timestamp,
+        commodity varchar(50),
+        lsKeywordsOriginal text,
+        lsKeyWordsTranslated text,
+        completeHTML int
+);
