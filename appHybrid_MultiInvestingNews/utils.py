@@ -84,7 +84,10 @@ def readFromInvesting():
             txtSource=None
             linkArticle=None
             strDate=None
-            strTimeStampField=None
+            #Start - PostgreSQL fields
+            fieldTimeStamp=None
+            fieldBase64NewContent=None
+            #End -  PostgreSQL Fields
             time.sleep(4)
             #For source: Those from "lsSource" list have "span", the rest have "div"
             #DO  NOT use "devuelveElemento" on "txtSource" because it can be an Ad, if it's an Ad then it would be
@@ -131,7 +134,7 @@ def readFromInvesting():
                 date_time_new=datetime.now() - timedelta(minutes=intAmountToSubstract)  
 
             # https://strftime.org/ : This format %Y-%m-%d %H:%M gets 24 hour based.
-            strTimeStampField = date_time_new.strftime("%Y-%m-%d %H:%M")     
+            fieldTimeStamp = date_time_new.strftime("%Y-%m-%d %H:%M")     
             
 
             #End of field Time setting
@@ -167,15 +170,15 @@ def readFromInvesting():
             #START OF TF-IDF AND WORD CLOUD PROCESS
             #generateKeyWordsAndWordCloudFromTFDIF(lsContent,page,idx+1,'news_analysis','images_wordcloud',False,False)
             #End of TF IDF - Keyword process
+
             #Start of PostgreSQL
             #Convert the original content to base64 to check if we have it already
             sbytes=None
             #Tutorial : https://base64.guru/developers/python/examples/decode-pdf
             #Convert to base64 the original text (position 0)
             sbytes = base64.b64encode(bytes(lsContent[0],'utf-8'))
-            sDecoded=sbytes.decode('utf-8')
-            #For date: In investing.com every new from today will have the label "Source -  # hrs ago",
-            #Any other new from past days will have its correspondant date
+            fieldBase64NewContent=sbytes.decode('utf-8')
+            
 
             
 
