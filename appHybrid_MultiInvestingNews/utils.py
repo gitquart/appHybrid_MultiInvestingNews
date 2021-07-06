@@ -17,8 +17,7 @@ from nltk import tokenize
 from deep_translator import GoogleTranslator
 from selenium.webdriver.common.keys import Keys
 import base64
-from datetime import date, datetime, timedelta
-import pytz
+from datetime import datetime, timedelta
 
 BROWSER=''
 objControl=cInternalControl()
@@ -76,7 +75,8 @@ def readFromInvesting():
             idx=lsArticle.index(article)
             print(f'----------Start of Page {str(page)} New {str(idx+1)}-------------')
             #Check Source
-            lsContent=[]
+            lsContentOriginal=list()
+            lsContentTranslated=list()
             strTitle=None
             strSource=None
             txtDateFilter=None
@@ -84,9 +84,12 @@ def readFromInvesting():
             txtSource=None
             linkArticle=None
             strDate=None
+            lsKeyWords=list()
             #Start - PostgreSQL fields
             fieldTimeStamp=None
             fieldBase64NewContent=None
+            fieldCompleteHTML=False
+            fieldListOfKeyWords=None
             #End -  PostgreSQL Fields
             time.sleep(4)
             #For source: Those from "lsSource" list have "span", the rest have "div"
@@ -136,7 +139,6 @@ def readFromInvesting():
             # https://strftime.org/ : This format %Y-%m-%d %H:%M gets 24 hour based.
             fieldTimeStamp = date_time_new.strftime("%Y-%m-%d %H:%M")     
             
-
             #End of field Time setting
             if strSource in lsSources:
                 articleContent=None
@@ -149,40 +151,45 @@ def readFromInvesting():
                 if articleContent:
                     sourceText=None
                     sourceText=articleContent.text
+                    lsContentOriginal.append(sourceText)
                     for text in getSourceAndTranslatedText(sourceText,'es'):
-                        lsContent.append(text)
+                        lsContentTranslated.append(text)
             else:
                 #---To know how many windows are open----
                 time.sleep(4)
+                fieldCompleteHTML=True
                 linkPopUp=None
                 linkPopUp=BROWSER.find_element_by_partial_link_text('Continue Reading')
                 time.sleep(3)
                 if linkPopUp:
                     BROWSER.execute_script("arguments[0].click();",linkPopUp)
                 time.sleep(3)
-                secondWindowMechanism(lsContent,'/html/body','es')
+                secondWindowMechanism(lsContentOriginal,'/html/body','es')
                 btnPopUpClose=None
                 btnPopUpClose=BROWSER.find_element_by_class_name('closeIconBlack')
                 time.sleep(3)
                 if btnPopUpClose:
                     BROWSER.execute_script("arguments[0].click();",btnPopUpClose)
                  
-            #START OF TF-IDF AND WORD CLOUD PROCESS
-            #generateKeyWordsAndWordCloudFromTFDIF(lsContent,page,idx+1,'news_analysis','images_wordcloud',False,False)
+            #START OF TF-IDF - keyword process
+            lsKeyWords=getCompleteListOfKeyWords(lsContentOriginal)
+            fieldListOfKeyWords=','.join(lsKeyWords)
             #End of TF IDF - Keyword process
 
-            #Start of PostgreSQL
+            #Start of PostgreSQL New Insertion
             #Convert the original content to base64 to check if we have it already
             sbytes=None
             #Tutorial : https://base64.guru/developers/python/examples/decode-pdf
             #Convert to base64 the original text (position 0)
             sbytes = base64.b64encode(bytes(lsContent[0],'utf-8'))
             fieldBase64NewContent=sbytes.decode('utf-8')
+
+            print('...')
             
 
             
 
-            #End of PostgreSQL
+            #End of PostgreSQL New Insertion
             print(f'----------End of Page {str(page)} New {str(idx+1)}-------------')
             if strSource in lsSources:
                 BROWSER.execute_script("window.history.go(-1)")      
@@ -196,14 +203,13 @@ def readFromInvesting():
             print(f'Generating complete TF-IDF until page {str(page)}')
             BROWSER.quit()
             #START OF TF-IDF AND WORD CLOUD PROCESS
-            generateKeyWordsAndWordCloudFromTFDIF(lsContentCorpus,None,None,'wholecorpus','wholecorpus',False,False)
+            lsKeyWords=list()
+            getCompleteListOfKeyWords(lsContentCorpus)
             #End of TF IDF - Keyword process
             print('All td idf done...')
             os.sys.exit(0) 
 
           
-        #query=f'update tbControl set page={str(page+1)} where id={str(objControl.idControl)}'
-        #db.executeNonQuery(query)
 
 def readFromDailyFX():
     returnChromeSettings()
@@ -215,9 +221,10 @@ def readFromDailyFX():
         #Get the news
         for objNew in lsNews:
             lsContent=list()
+            lsContentTranslated=list()
             hrefLink=objNew.get_attribute('href')
             BROWSER.execute_script('window.open("'+hrefLink+'")','_blank')
-            secondWindowMechanism(lsContent,'/html/body/div[5]/div/main/article/section/div/div[1]/div[1]/div','es')        
+            secondWindowMechanism(lsContent,lsContentTranslated,'/html/body/div[5]/div/main/article/section/div/div[1]/div[1]/div','es')        
                  
         print(f'End of page {str(page)}')  
         
@@ -235,11 +242,12 @@ def readFromInvestopedia(option):
     if lsFirstCard:
         for card in lsFirstCard:
             lsContent=list()
+            lsContentTranslated=list()
             linkNew=None
             linkNew=card.find_element_by_xpath('.//a')
             hrefLink=linkNew.get_attribute('href')
             BROWSER.execute_script('window.open("'+hrefLink+'")','_blank')
-            secondWindowMechanism(lsContent,'/html/body/main/div[2]/article/div[2]/div[1]','es')
+            secondWindowMechanism(lsContent,lsContentTranslated,'/html/body/main/div[2]/article/div[2]/div[1]','es')
              
     lsSecondCard=devuelveListaElementos('/html/body/main/div[2]/div[2]/ul/li')          
     if lsSecondCard:
@@ -266,11 +274,12 @@ def readFromCryptonews():
     lsFirstSection=devuelveListaElementos('/html/body/div[2]/section[1]/div/div')
     for objNew in lsFirstSection:
         lsContent=list()
+        lsContentTranslated=list()
         linkNew=None
         linkNew=objNew.find_element_by_xpath('.//a')
         hrefLink=linkNew.get_attribute('href')
         BROWSER.execute_script('window.open("'+hrefLink+'")','_blank')
-        secondWindowMechanism(lsContent,'/html/body/div[2]/article/div/div[2]','es')
+        secondWindowMechanism(lsContent,lsContentTranslated,'/html/body/div[2]/article/div/div[2]','es')
         
 
     #Second Section of News
@@ -307,6 +316,7 @@ def readFromYahoo(option):
     lsMainSection=devuelveListaElementos(strPathMainSection)
     for objNew in lsMainSection:
         lsContent=list()
+        lsContentTranslated=list()
         linkNew=None
         idx= lsMainSection.index(objNew)
         #Cases: Market and New
@@ -330,7 +340,7 @@ def readFromYahoo(option):
     
         hrefLink=linkNew.get_attribute('href')
         BROWSER.execute_script('window.open("'+hrefLink+'")','_blank')
-        secondWindowMechanism(lsContent,'html/body','en','es')
+        secondWindowMechanism(lsContent,lsContentTranslated,'html/body','es')
         print(f'FIRST SECTION Ready: {str(idx+1)} ')        
 
 def readFromFXNews():
@@ -343,11 +353,12 @@ def readFromFXNews():
     for objNew in lsMainSection:
         idx=lsMainSection.index(objNew)
         lsContent=list()
+        lsContentTranslated=list()
         hrefLink=None
         linkNew=objNew.find_element_by_xpath('.//a')  
         hrefLink=linkNew.get_attribute('href')
         BROWSER.execute_script('window.open("'+hrefLink+'")','_blank')
-        secondWindowMechanism(lsContent,'/html/body/div[4]/div[2]/div/div/main/div/div[3]/div[1]/div/section/article/div[1]/div','es')
+        secondWindowMechanism(lsContent,lsContentTranslated,'/html/body/div[4]/div[2]/div/div/main/div/div[3]/div[1]/div/section/article/div[1]/div','es')
         print(f'Ready: {str(idx+1)} ')
 
     linkNext=devuelveElemento('/html/body/div[4]/div[2]/div/div/div/main/div/div[2]/div[1]/div/div[2]/div/div[2]/section/div/div/div/section[2]/div/ul/li[9]/a') 
@@ -365,11 +376,12 @@ def readFromElFinanciero():
             for article in lsArticle:  
                 idx=lsArticle.index(article)
                 lsContent=list()
+                lsContentTranslated=list()
                 hrefLink=None
                 linkNew=article.find_element_by_xpath('.//a')  
                 hrefLink=linkNew.get_attribute('href')
                 BROWSER.execute_script('window.open("'+hrefLink+'")','_blank')
-                secondWindowMechanism(lsContent,'/html/body/div[1]/section/div/div[2]/div/article','en')
+                secondWindowMechanism(lsContent,lsContentTranslated,'/html/body/div[1]/section/div/div[2]/div/article','en')
                 print(f'Ready: {str(idx+1)} ')
     print('Both sections')            
                 
@@ -408,7 +420,7 @@ def getSourceAndTranslatedText(sourceText,tgtLang):
             lsTranslated.remove(item)
 
             
-    return [sourceText,' '.join(lsTranslated)]
+    return [' '.join(lsTranslated)]
 
 def returnChromeSettings():
     global BROWSER
@@ -433,7 +445,7 @@ def returnChromeSettings():
     else:
         BROWSER=webdriver.Chrome(options=options)  
 
-def secondWindowMechanism(lsContent,xPathElementSecondWindow,tgtLang):
+def secondWindowMechanism(lsContent,lsContentTranslated,xPathElementSecondWindow,tgtLang):
     if len(BROWSER.window_handles)>1:
         bAd=False
         second_window=BROWSER.window_handles[1]
@@ -450,7 +462,7 @@ def secondWindowMechanism(lsContent,xPathElementSecondWindow,tgtLang):
             sourceText=None
             sourceText=strContent.text
             for text in getSourceAndTranslatedText(sourceText,tgtLang):
-                lsContent.append(text)
+                lsContentTranslated.append(text)
             
            
         #Close Window 2
@@ -460,71 +472,25 @@ def secondWindowMechanism(lsContent,xPathElementSecondWindow,tgtLang):
         first_window=BROWSER.window_handles[0]
         BROWSER.switch_to.window(first_window)
 
-def generateKeyWordsAndWordCloudFromTFDIF(lsContent,page,no_new,folderKeyword,folderImage,bPrintReport,bWordCloud):
+def getCompleteListOfKeyWords(lsContent):
     #This implementation of code is based on : 
     # https://towardsdatascience.com/tf-idf-explained-and-python-sklearn-implementation-b020c5e83275
-    strTop=''
-    strBottom=''
+
+    #Details: lsContent has 2 documents as default: [0] Original new and [1] translated new
     contentSize=len(lsContent)
     if contentSize>1:
-        if bPrintReport:
-            file_New_Keywords=folderKeyword+'\\wholecorpus_keyword.txt'  
-            strTop='--------------Start of All news---------------------\n'  
-            strBottom='--------------End of All news---------------------\n'
         lsContentToRead=None
     else:
-        if bPrintReport:
-            file_New_Keywords=folderKeyword+'\\NewAndKeywords_For_Page_'+str(page)+'_New_'+str(no_new)+'.txt'
-            strTop=f'--------Start of Page {str(page)} New {str(no_new)} ---------------\n'
-            strBottom=f'--------End of News {str(no_new)} ---------------\n'
         lsContentToRead=lsContent
     
-    if bPrintReport:    
-        printToFile(file_New_Keywords,strTop)
-        printToFile(file_New_Keywords,f' News Content :\n')        
-        for content in lsContentToRead:
-            printToFile(file_New_Keywords,'********************************************************\n')
-            printToFile(file_New_Keywords,content+'\n')
-            printToFile(file_New_Keywords,'********************************************************\n')
-
     #Creating TF-IDF and its dataframe
     lsRes=[]
     lsRes=getDataFrameFromTF_IDF(lsContent,contentSize)
     df=lsRes[0]
-    lsFeatures=lsRes[1]    
-    for keywordsLimit in lsKeyWordsLimit:
-        df_Sliced=df[:keywordsLimit]
-        print('-------Analysis for ',str(keywordsLimit), 'keyword---------\n')
-        if keywordsLimit>len(lsFeatures):
-            print('The keywords limit is greater than the feature list')
-            os.sys.exit(0)
-
-        if bPrintReport:
-            printToFile(file_New_Keywords,f'-------------------First {str(keywordsLimit)} Important Keywords--------------------\n')
-            printToFile(file_New_Keywords,f'-------------------Word , Tf-idf value--------------------\n')
-            
-        
-        dictWord_TF_IDF={}
-        for row in df_Sliced.iterrows():
-            line=str(row[1].name)+' , '+str(row[1].values[0])
-            dictWord_TF_IDF[str(row[1].name)]=float(str(row[1].values[0]))
-            if bPrintReport:
-                printToFile(file_New_Keywords,line+'\n')
-        if bWordCloud:        
-            #Create WorldCloud from any dictionary (Ex: Word, Freq; Word, TF-IDF,....{Word, AnyValue})
-            if contentSize==1:
-                image_file=folderImage+'\\image_page_'+str(page)+'_new_'+str(no_new)+'_'+str(keywordsLimit)+'_keyword.jpeg'
-            else:
-                image_file=folderImage+'\\wholecorpusImage_'+str(keywordsLimit)+'keyword.jpeg'    
-            createWordCloud(image_file,dictWord_TF_IDF)
-        #END OF TF-IDF AND WORD CLOUD PROCESS
-            
-        del dictWord_TF_IDF
-        del df_Sliced
-    del df    
-
-    if bPrintReport:    
-        printToFile(file_New_Keywords,strBottom)
+    #lsFeatures may be used later, I just comment it meanwhile...
+    #lsFeatures=lsRes[1] 
+    
+    return df
                          
 def pre_process_data(content):
     content = content.replace('.',' ')
@@ -547,12 +513,16 @@ def devuelveElementoDinamico(xPath,option,limit):
         option+=1
         devuelveElementoDinamico(xPath,option,limit)
                    
-def createWordCloud(imageName,dictWord_Weight):
-    wordcloud = WordCloud().generate_from_frequencies(dictWord_Weight)
+def createWordCloud(imageName,df_Sliced):
+    dictWord_TF_IDF={}
+    for row in df_Sliced.iterrows():
+        dictWord_TF_IDF[str(row[1].name)]=float(str(row[1].values[0]))
+    wordcloud = WordCloud().generate_from_frequencies(dictWord_TF_IDF)
     plt.imshow(wordcloud, interpolation='bilinear')
     plt.axis("off")
     plt.savefig(f'{imageName}')
     del wordcloud
+    del dictWord_TF_IDF
     
 def getDataFrameFromTF_IDF(lsContent,contentSize):
     #Start of "FILTERING AND STOPWORDS"
