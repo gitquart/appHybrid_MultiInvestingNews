@@ -27,7 +27,7 @@ lsStopWord_English = set(stopwords.words('english'))
 lsStopWord_Spanish= set(stopwords.words('spanish'))
 lsMyStopWords=['reuters','by','com','u','s','have','has','said','the','are','his','her','would','say','marketwatch',
                    'since','could','newsletters','nwe2050','nowbrokerstoolseconomic','comworldamericasperuscastilloleadselectionwith501votesafterallballotstallied20210615',
-                   'etfsnysesiljsilxsinv','oilprice','ev','gm']
+                   'etfsnysesiljsilxsinv','oilprice','ev','gm','also']
 lsFinalStopWords=list(set(lsStopWord_English) | set(lsMyStopWords) | set(lsStopWord_Spanish) )
 lsKeyWordsLimit=[20,30,35]
 #lsContentCorpus and lsWordAllNews_WithNoSW  are elements for the TF IDF of a SET OF NEWS
@@ -84,12 +84,14 @@ def readFromInvesting():
             txtSource=None
             linkArticle=None
             strDate=None
-            lsKeyWords=list()
+            lsKeyWordsOriginal=list()
+            lsKeyWordsTranslated=list()
             #Start - PostgreSQL fields
             fieldTimeStamp=None
             fieldBase64NewContent=None
             fieldCompleteHTML=False
-            fieldListOfKeyWords=None
+            fieldListOfKeyWordsOriginal=None
+            fieldListOfKeyWordsTranslated=None
             #End -  PostgreSQL Fields
             time.sleep(4)
             #For source: Those from "lsSource" list have "span", the rest have "div"
@@ -172,16 +174,31 @@ def readFromInvesting():
                     BROWSER.execute_script("arguments[0].click();",btnPopUpClose)
                  
             #START OF TF-IDF - keyword process
-            lsKeyWords=getCompleteListOfKeyWords(lsContentOriginal)
-            fieldListOfKeyWords=','.join(lsKeyWords)
+            """
+            In this dataframe, you can get the name and its weight by iterating each row:
+                Feature/word = row[1].name
+                 Weight   = row[1].values[0]
+            """
+            df_tfidf_original=getCompleteListOfKeyWords(lsContentOriginal) 
+            for row in df_tfidf_original[0:40].iterrows():
+                lsKeyWordsOriginal.append(str(row[1].name))
+            del df_tfidf_original
+            fieldListOfKeyWordsOriginal=','.join(lsKeyWordsOriginal)
+
+            df_tfidf_translated=getCompleteListOfKeyWords(lsContentTranslated) 
+            for row in df_tfidf_translated[0:40].iterrows():
+                lsKeyWordsTranslated.append(str(row[1].name))
+            del df_tfidf_translated
+            fieldListOfKeyWordsTranslated=','.join(lsKeyWordsTranslated)
             #End of TF IDF - Keyword process
+            
 
             #Start of PostgreSQL New Insertion
             #Convert the original content to base64 to check if we have it already
             sbytes=None
             #Tutorial : https://base64.guru/developers/python/examples/decode-pdf
             #Convert to base64 the original text (position 0)
-            sbytes = base64.b64encode(bytes(lsContent[0],'utf-8'))
+            sbytes = base64.b64encode(bytes(lsContentOriginal[0],'utf-8'))
             fieldBase64NewContent=sbytes.decode('utf-8')
 
             print('...')
@@ -485,7 +502,7 @@ def getCompleteListOfKeyWords(lsContent):
     
     #Creating TF-IDF and its dataframe
     lsRes=[]
-    lsRes=getDataFrameFromTF_IDF(lsContent,contentSize)
+    lsRes=getDataFrameFromTF_IDF(lsContentToRead,contentSize)
     df=lsRes[0]
     #lsFeatures may be used later, I just comment it meanwhile...
     #lsFeatures=lsRes[1] 
@@ -574,6 +591,10 @@ def getDataFrameFromTF_IDF(lsContent,contentSize):
     tfIdf = tfIdfVectorizer.fit_transform(dataset)
     df = pd.DataFrame(tfIdf[0].T.todense(), index=tfIdfVectorizer.get_feature_names(), columns=["TF-IDF"])
     df = df.sort_values('TF-IDF', ascending=False)
+    
+    In this dataframe, you can get the name and its weight by iterating each row:
+    Feature/word = row[1].name
+        Weight   = row[1].values[0]
     """
     df=pd.DataFrame(tf_idf_matrix[0].T.todense(),index=vectorizer.get_feature_names(),columns=["TF-IDF"])
     df=df.sort_values('TF-IDF',ascending=False)
