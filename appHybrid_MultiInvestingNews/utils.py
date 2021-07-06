@@ -17,6 +17,8 @@ from nltk import tokenize
 from deep_translator import GoogleTranslator
 from selenium.webdriver.common.keys import Keys
 import base64
+from datetime import date, datetime, timedelta
+import pytz
 
 BROWSER=''
 objControl=cInternalControl()
@@ -77,23 +79,31 @@ def readFromInvesting():
             lsContent=[]
             strTitle=None
             strSource=None
-            txtDate=None
-            strDate=None
+            txtDateFilter=None
+            strDateFilter=None
             txtSource=None
-            time.sleep(4)
             linkArticle=None
+            strDate=None
+            strTimeStampField=None
+            time.sleep(4)
             #For source: Those from "lsSource" list have "span", the rest have "div"
             #DO  NOT use "devuelveElemento" on "txtSource" because it can be an Ad, if it's an Ad then it would be
             #forever looping
             try:
                 txtSource=BROWSER.find_element_by_xpath(f'/html/body/div[5]/section/div[4]/article[{str(idx+1)}]/div[1]/span/span[1]')
-                txtDate=BROWSER.find_element_by_xpath(f'/html/body/div[5]/section/div[4]/article[{str(idx+1)}]/div[1]/span/span[2]')
+                txtDateFilter=BROWSER.find_element_by_xpath(f'/html/body/div[5]/section/div[4]/article[{str(idx+1)}]/div[1]/span/span[2]')
             except:
                 try:
                     txtSource=BROWSER.find_element_by_xpath(f'/html/body/div[5]/section/div[4]/article[{str(idx+1)}]/div[1]/div/span[1]')
-                    txtDate=BROWSER.find_element_by_xpath(f'/html/body/div[5]/section/div[4]/article[{str(idx+1)}]/div[1]/div/span[2]')
+                    txtDateFilter=BROWSER.find_element_by_xpath(f'/html/body/div[5]/section/div[4]/article[{str(idx+1)}]/div[1]/div/span[2]')
                 except:
                     print(f'----------End of Page {str(page)} New {str(idx+1)} (Most probable an ad or No content)-------------')
+                    continue
+            #To know if the new is from today, we got to check if the word "ago" is in the date string
+            # If not, continue to next new...    
+            if txtDateFilter:
+                strDateFilter=txtDateFilter.text
+                if 'ago' not in strDateFilter:
                     continue
 
             if txtSource:
@@ -101,16 +111,30 @@ def readFromInvesting():
                 strSource=strSource.split(' ')[1]
                 print(f'Source :{strSource}')
 
-            if txtDate:
-                strDate=txtDate.text  
-                strDate=strDate.strip() 
-                #Get hours to substract from current time
-                chunks=strDate.split(' ')
-                intHrs=int(chunks[1])
-
-
             linkArticle=devuelveElemento(f'/html/body/div[5]/section/div[4]/article[{str(idx+1)}]/div[1]/a')
             BROWSER.execute_script("arguments[0].click();",linkArticle)
+            #Start of field Time setting
+            #If the code reaches so far, then the date is TODAY for both cases of Source
+            # And I will always substract the hours or minutes from the current Date
+            # Format code : %d , %m , %Y %H:%M:%S
+            #For timestamp in PostgreSQL I need it as "YYYY-M-D HH:MM pm/am"
+            #Get the time of the new by substracting "hrs or mins ago" to Current Central Time
+            #strDate example : '- 1 hour ago, - 23 minutes ago'
+            strDate=strDateFilter.strip() 
+            date_time_new=None
+            #Get hours or minutes to substract from current time
+            chunks=strDate.split(' ')
+            intAmountToSubstract=int(chunks[1])
+            if 'hour' in strDate:
+                date_time_new=datetime.now() - timedelta(hours=intAmountToSubstract)
+            if 'minute' in strDate:
+                date_time_new=datetime.now() - timedelta(minutes=intAmountToSubstract)  
+
+            # https://strftime.org/ : This format %Y-%m-%d %H:%M gets 24 hour based.
+            strTimeStampField = date_time_new.strftime("%Y-%m-%d %H:%M")     
+            
+
+            #End of field Time setting
             if strSource in lsSources:
                 articleContent=None
                 articleTitle=None
