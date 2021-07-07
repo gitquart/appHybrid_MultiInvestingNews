@@ -266,7 +266,6 @@ def readFromInvesting():
             print(f'Generating complete TF-IDF until page {str(page)}')
             BROWSER.quit()
             #START OF TF-IDF AND WORD CLOUD PROCESS
-            lsKeyWords=list()
             getCompleteListOfKeyWords(lsContentCorpus)
             #End of TF IDF - Keyword process
             print('All td idf done...')
@@ -455,10 +454,12 @@ def getSourceAndTranslatedText(sourceText,tgtLang):
     #getSourceAndTranslatedText returns both (original and translated text) clean.
     lsTranslated=list()
     lsSourceText=list()
+    lsSourceText_AllClean=list()
    
     """
     isspace is True when '__' or more, '' this would be False
-    """       
+    """ 
+    #Start of CLEANING PROCESS      
     #Remove text that may cause troubles: No content
     lsSourceText=sourceText.split('\n')
     #Analize every character in item, if it remains "space" , wipe it out
@@ -471,23 +472,21 @@ def getSourceAndTranslatedText(sourceText,tgtLang):
 
         idx=lsSourceText.index(item)  
         lsSourceText[idx]=newString     
-        #After each character process, if it remains on space or not string, wipe it out
-        if (lsSourceText[idx].isspace()) or (not lsSourceText[idx]):
-            lsSourceText.pop(idx)
-                
+    #END of CLEANING PROCESS      
+
     for item in lsSourceText:
-        item=str(item).strip()
-        sizeItem=len(item)
-        print(f'Item length = {str(sizeItem)}')
-        if (sizeItem > 0) or (item!=None):
-            lsTranslated.append(GoogleTranslator(target=tgtLang).translate(item))
+        if (len(item)>0):
+            if not item.isspace():
+                lsSourceText_AllClean.append(item)        
+    
+    lsTranslated=GoogleTranslator(target=tgtLang).translate_batch(lsSourceText_AllClean)
     #Cleaning lsTranslated
     for item in lsTranslated:
         if item is None:
             lsTranslated.remove(item)
 
             
-    return [' '.join(lsSourceText),' '.join(lsTranslated)]
+    return [' '.join(lsSourceText_AllClean),' '.join(lsTranslated)]
 
 def returnChromeSettings():
     global BROWSER
