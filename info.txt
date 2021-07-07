@@ -13,7 +13,11 @@ Web sites to read:
 1) Testing Documentation
 
 1.1)Testing with sites and translation
-Good results: FXNews, El Financiero, Criptonews,Investopedia,
+Good results: FXNews, El Financiero, Criptonews,Investopedia
+
+This "test" variables gets again the original content, so by the example
+it's decoded with utf-8 twice
+test=base64.b64decode(fieldBase64NewContent).decode('utf-8')
 
 2) Instructions to read web sites:
 

@@ -51,7 +51,8 @@ dicWebSite={
             
             }
 lsCommodity=['crude oil','oil','brent','natural gas','gold','silver','copper','coffee'] 
-fieldCommodity=None        
+fieldCommodity=None   
+fieldBase64NewContent=None     
 
 #End of Common items
 
@@ -86,10 +87,10 @@ def readFromInvesting():
             txtSource=None
             linkArticle=None
             strDate=None
-            sbytes=None
             lsKeyWordsOriginal=list()
             lsKeyWordsTranslated=list()
             #Start - PostgreSQL fields
+            global fieldCommodity,fieldBase64NewContent
             fieldTimeStamp=None
             fieldBase64NewContent=None
             fieldCompleteHTML=0
@@ -98,7 +99,6 @@ def readFromInvesting():
             fieldTitle='No title'
             fieldUrl=None
             fieldSourceSite=None
-            global fieldCommodity
             fieldCommodity=None
             #End -  PostgreSQL Fields
             time.sleep(4)
@@ -179,8 +179,13 @@ def readFromInvesting():
                     sourceText=articleContent.text
                     lsResult=list()
                     lsResult=getSourceAndTranslatedText(sourceText,'es')
-                    lsContentOriginal.append(lsResult[0])
-                    lsContentTranslated.append(lsResult[1])
+                    if lsResult:
+                        lsContentOriginal.append(lsResult[0])
+                        lsContentTranslated.append(lsResult[1])
+                    else:
+                        print(f'----------End of Page {str(page)} New {str(idx+1)} ALREADY IN TABLE-------------')
+                        BROWSER.execute_script("window.history.go(-1)")
+                        continue    
             else:
                 #---To know how many windows are open----
                 time.sleep(4)
@@ -201,7 +206,7 @@ def readFromInvesting():
                     BROWSER.execute_script("arguments[0].click();",btnPopUpClose)
 
                 if not res:
-                    print(f'----------End of Page {str(page)} New {str(idx+1)} NO COMMODITY FOUND-------------')
+                    print(f'----------End of Page {str(page)} New {str(idx+1)} NO COMMODITY FOUND OR ALREADY IN TABLE-------------')
                     continue    
                  
             #START OF TF-IDF - keyword process
@@ -227,31 +232,16 @@ def readFromInvesting():
             fieldListOfKeyWordsTranslated=';'.join(lsKeyWordsTranslated)
 
             #End of TF IDF - Keyword process
-        
-            #Convert the original content to base64 to check if we have it already
-            #Tutorial : https://base64.guru/developers/python/examples/decode-pdf
-            #Convert to base64 the original text (position 0)
-            sbytes = base64.b64encode(bytes(lsContentOriginal[0],'utf-8'))
-            fieldBase64NewContent=sbytes.decode('utf-8')
-            #This "test" variables gets again the original content, so by the example
-            #it's decoded with utf-8 twice
-            #test=base64.b64decode(fieldBase64NewContent).decode('utf-8')
+    
             #Start of PostgreSQL New Insertion
-
-            query=f"select id from tbNew where txtBase64_contentoriginal='{fieldBase64NewContent}'"
-            lsRes=bd.getQuery(query)
-            if not lsRes:
-                #Case: The new is not in table, hence insert it.
-                strFields='(txtTitle,txtNew_content_Original,txtNew_content_Translated,txtBase64_contentOriginal,tspDateTime,commodity,lsKeywordsOriginal,lsKeyWordsTranslated,completeHTML,txturl,txtsitesource)'
-                strValues=f"('{fieldTitle}','{lsContentOriginal[0]}','{lsContentTranslated[0]}','{fieldBase64NewContent}','{fieldTimeStamp}','{fieldCommodity}','{fieldListOfKeyWordsOriginal}','{fieldListOfKeyWordsTranslated}',{fieldCompleteHTML},'{fieldUrl}','{fieldSourceSite}')"
-                st=f"insert into tbNew {strFields} values {strValues} "
-                bd.executeNonQuery(st)
-                print('----------------New inserted succesfully!----------------')
-            else:
-                print('----------------New already stored!----------------------')    
+            
+            #Case: The new is not in table, hence insert it.
+            strFields='(txtTitle,txtNew_content_Original,txtNew_content_Translated,txtBase64_contentOriginal,tspDateTime,commodity,lsKeywordsOriginal,lsKeyWordsTranslated,completeHTML,txturl,txtsitesource)'
+            strValues=f"('{fieldTitle}','{lsContentOriginal[0]}','{lsContentTranslated[0]}','{fieldBase64NewContent}','{fieldTimeStamp}','{fieldCommodity}','{fieldListOfKeyWordsOriginal}','{fieldListOfKeyWordsTranslated}',{fieldCompleteHTML},'{fieldUrl}','{fieldSourceSite}')"
+            st=f"insert into tbNew {strFields} values {strValues} "
+            bd.executeNonQuery(st)
+            print('----------------New inserted succesfully!----------------') 
               
-      
-
             #End of PostgreSQL New Insertion
             print(f'----------End of Page {str(page)} New {str(idx+1)}-------------')
             if strSource in lsSources:
@@ -452,6 +442,8 @@ def readFromElFinanciero():
 
 def getSourceAndTranslatedText(sourceText,tgtLang):
     #getSourceAndTranslatedText returns both (original and translated text) clean.
+    global fieldBase64NewContent
+    res=False
     lsTranslated=list()
     lsSourceText=list()
     lsSourceText_AllClean=list()
@@ -472,21 +464,38 @@ def getSourceAndTranslatedText(sourceText,tgtLang):
 
         idx=lsSourceText.index(item)  
         lsSourceText[idx]=newString     
-    #END of CLEANING PROCESS      
+          
 
     for item in lsSourceText:
         if (len(item)>0):
             if not item.isspace():
-                lsSourceText_AllClean.append(item)        
-    
-    lsTranslated=GoogleTranslator(target=tgtLang).translate_batch(lsSourceText_AllClean)
-    #Cleaning lsTranslated
-    for item in lsTranslated:
-        if item is None:
-            lsTranslated.remove(item)
+                lsSourceText_AllClean.append(item)
+
+    #END of CLEANING PROCESS
+    sourceContent_clean=' '.join(lsSourceText_AllClean)
+    #Once the original content is clean, convert it to base64 and check in database. 
+     #Convert the original content to base64 to check if we have it already
+    #Tutorial : https://base64.guru/developers/python/examples/decode-pdf
+    #Convert to base64 the original text (position 0)
+    sbytes=None
+    sbytes = base64.b64encode(bytes(sourceContent_clean,'utf-8'))
+    fieldBase64NewContent=sbytes.decode('utf-8') 
+    lsRes=None
+    query=f"select id from tbNew where txtBase64_contentoriginal='{fieldBase64NewContent}'"
+    lsRes=bd.getQuery(query) 
+
+    if not lsRes:
+        #Case: The record does not exist, hence translate it and keep going
+        lsTranslated=GoogleTranslator(target=tgtLang).translate_batch(lsSourceText_AllClean)
+        #Cleaning lsTranslated
+        for item in lsTranslated:
+            if item is None:
+                lsTranslated.remove(item)
+
+        res=[sourceContent_clean,' '.join(lsTranslated)]          
 
             
-    return [' '.join(lsSourceText_AllClean),' '.join(lsTranslated)]
+    return res
 
 def returnChromeSettings():
     global BROWSER
@@ -541,9 +550,12 @@ def secondWindowMechanism(lsContent,lsContentTranslated,xPathElementSecondWindow
             else:
                 lsResult=list()
                 lsResult=getSourceAndTranslatedText(sourceText,tgtLang)
-                lsContent.append(lsResult[0])
-                lsContentTranslated.append(lsResult[1])
-                res=True
+                if lsResult:
+                    lsContent.append(lsResult[0])
+                    lsContentTranslated.append(lsResult[1])
+                    res=True
+                else:
+                    res=False    
             
            
             #Close Window 2
