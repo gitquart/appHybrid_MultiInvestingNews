@@ -32,6 +32,14 @@ Hints:
 For Xpath:
     - //  : it begins searching from the root of document. 
     - .// :To search relative to a particular element
+
+Heroku database:
+
+For some reason, some day in the morning I could not connect to heroku , error was 
+
+"psql: FATAL: remaining connection slots are reserved for non-replication superuser connections"
+
+It is solved by setting ssl mode require , more info: https://dev-playbook.prospect.io/our-tools/sql-client/dbeaver
     
 
 

@@ -96,6 +96,8 @@ def readFromInvesting():
             fieldListOfKeyWordsOriginal=None
             fieldListOfKeyWordsTranslated=None
             fieldTitle='No title'
+            fieldUrl=None
+            fieldSourceSite=None
             global fieldCommodity
             fieldCommodity=None
             #End -  PostgreSQL Fields
@@ -123,9 +125,11 @@ def readFromInvesting():
             if txtSource:
                 strSource=txtSource.text    
                 strSource=strSource.split(' ')[1]
+                fieldSourceSite=strSource
                 print(f'Source :{strSource}')
 
             linkArticle=devuelveElemento(f'/html/body/div[5]/section/div[4]/article[{str(idx+1)}]/div[1]/a')
+            fieldUrl=linkArticle.get_attribute('href')
             BROWSER.execute_script("arguments[0].click();",linkArticle)
             #Start of field Time setting
             #If the code reaches so far, then the date is TODAY for both cases of Source
@@ -183,6 +187,7 @@ def readFromInvesting():
                 fieldCompleteHTML=1
                 linkPopUp=None
                 linkPopUp=BROWSER.find_element_by_partial_link_text('Continue Reading')
+                fieldUrl=linkPopUp.get_attribute('href')
                 time.sleep(3)
                 if linkPopUp:
                     BROWSER.execute_script("arguments[0].click();",linkPopUp)
@@ -237,8 +242,8 @@ def readFromInvesting():
             lsRes=bd.getQuery(query)
             if not lsRes:
                 #Case: The new is not in table, hence insert it.
-                strFields='(txtTitle,txtNew_content_Original,txtNew_content_Translated,txtBase64_contentOriginal,tspDateTime,commodity,lsKeywordsOriginal,lsKeyWordsTranslated,completeHTML)'
-                strValues=f"('{strTitle}','{lsContentOriginal[0]}','{lsContentTranslated[0]}','{fieldBase64NewContent}','{fieldTimeStamp}','{fieldCommodity}','{fieldListOfKeyWordsOriginal}','{fieldListOfKeyWordsTranslated}',{fieldCompleteHTML})"
+                strFields='(txtTitle,txtNew_content_Original,txtNew_content_Translated,txtBase64_contentOriginal,tspDateTime,commodity,lsKeywordsOriginal,lsKeyWordsTranslated,completeHTML,txturl,txtsitesource)'
+                strValues=f"('{fieldTitle}','{lsContentOriginal[0]}','{lsContentTranslated[0]}','{fieldBase64NewContent}','{fieldTimeStamp}','{fieldCommodity}','{fieldListOfKeyWordsOriginal}','{fieldListOfKeyWordsTranslated}',{fieldCompleteHTML},'{fieldUrl}','{fieldSourceSite}')"
                 st=f"insert into tbNew {strFields} values {strValues} "
                 bd.executeNonQuery(st)
             else:

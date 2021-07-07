@@ -1,10 +1,10 @@
 import psycopg2
 
 HOST='ec2-52-5-1-20.compute-1.amazonaws.com'
-DBNAME='d60rbnvko1pi6s'
-USER='bkhliiklxjjgce'
+DBNAME='d2518vjck351pf'
+USER='fhgcymlgcyitvo'
 PORT='5432'
-PASSWORD='e1ec6f00414a7843803c52e448137f9d8213bdb3ffe8cd9bc9517e6b89f2ad01'
+PASSWORD='8a60be146a4ad13d922c6a4a70dd29781c57ae7bfe09b70af3465fac06db391f'
 
 
 def getQuery(query):

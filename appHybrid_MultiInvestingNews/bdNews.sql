@@ -34,8 +34,12 @@ CREATE TABLE tbNew (
         txtNew_content_Translated text,
         txtBase64_contentOriginal text,
         tspDateTime timestamp,
+        txturl varchar(200),
+        txtsitesource varchar(100),
         commodity varchar(50),
         lsKeywordsOriginal text,
         lsKeyWordsTranslated text,
         completeHTML int
 );
+
+select * from tbNew;
