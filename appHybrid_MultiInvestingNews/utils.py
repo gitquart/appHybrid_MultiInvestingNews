@@ -207,15 +207,20 @@ def readFromInvesting():
             """
             df_tfidf_original=getCompleteListOfKeyWords(lsContentOriginal) 
             for row in df_tfidf_original[0:40].iterrows():
-                lsKeyWordsOriginal.append(str(row[1].name))
+                strLine=None
+                strLine=f'{str(row[1].name)},{str(row[1].values[0])}'
+                lsKeyWordsOriginal.append(strLine)
             del df_tfidf_original
-            fieldListOfKeyWordsOriginal=','.join(lsKeyWordsOriginal)
+            fieldListOfKeyWordsOriginal=';'.join(lsKeyWordsOriginal)
 
             df_tfidf_translated=getCompleteListOfKeyWords(lsContentTranslated) 
             for row in df_tfidf_translated[0:40].iterrows():
-                lsKeyWordsTranslated.append(str(row[1].name))
+                strLine=None
+                strLine=f'{str(row[1].name)},{str(row[1].values[0])}'
+                lsKeyWordsTranslated.append(strLine)
             del df_tfidf_translated
-            fieldListOfKeyWordsTranslated=','.join(lsKeyWordsTranslated)
+            fieldListOfKeyWordsTranslated=';'.join(lsKeyWordsTranslated)
+
             #End of TF IDF - Keyword process
         
             #Convert the original content to base64 to check if we have it already
