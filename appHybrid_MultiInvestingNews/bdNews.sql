@@ -22,6 +22,7 @@ create table tbCommonTools
 
 )
 
+drop table tbnew ;
 select app,page from tbcontrol where id=1;
 
 update tbcontrol  set page=1 where id=1;

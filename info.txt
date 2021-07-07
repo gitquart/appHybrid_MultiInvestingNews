@@ -44,6 +44,8 @@ For some reason, some day in the morning I could not connect to heroku , error w
 "psql: FATAL: remaining connection slots are reserved for non-replication superuser connections"
 
 It is solved by setting ssl mode require , more info: https://dev-playbook.prospect.io/our-tools/sql-client/dbeaver
+
+If database show frequent erros, check notifications in the accound , it MUST BE UNDER MAINTANCE.
     
 
 

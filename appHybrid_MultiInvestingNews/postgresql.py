@@ -1,9 +1,9 @@
 import psycopg2
 
-HOST='ec2-52-6-178-202.compute-1.amazonaws.com'
-DBNAME='dfqghadp4uimcj'
-USER='zuifbxljotyqju'
-PASSWORD='145e55d54668fefb4180a3a143799e38f0270dada403009f88841268bd90ae8c'
+HOST='ec2-23-23-164-251.compute-1.amazonaws.com'
+DBNAME='d7vvujncq3os5s'
+USER='acanhvmrdorzis'
+PASSWORD='e4a2d5e50f22dd51728eff619d70c9b172317f7e89d767c34f3b2aba91c0f339'
 PORT='5432'
 
 
