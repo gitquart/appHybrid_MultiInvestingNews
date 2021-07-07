@@ -246,8 +246,9 @@ def readFromInvesting():
                 strValues=f"('{fieldTitle}','{lsContentOriginal[0]}','{lsContentTranslated[0]}','{fieldBase64NewContent}','{fieldTimeStamp}','{fieldCommodity}','{fieldListOfKeyWordsOriginal}','{fieldListOfKeyWordsTranslated}',{fieldCompleteHTML},'{fieldUrl}','{fieldSourceSite}')"
                 st=f"insert into tbNew {strFields} values {strValues} "
                 bd.executeNonQuery(st)
+                print('----------------New inserted succesfully!----------------')
             else:
-                print('New already stored!')    
+                print('----------------New already stored!----------------------')    
               
       
 
@@ -473,10 +474,13 @@ def getSourceAndTranslatedText(sourceText,tgtLang):
         #After each character process, if it remains on space or not string, wipe it out
         if (lsSourceText[idx].isspace()) or (not lsSourceText[idx]):
             lsSourceText.pop(idx)
-
-             
-      
-    lsTranslated = GoogleTranslator(target=tgtLang).translate_batch(lsSourceText)
+                
+    for item in lsSourceText:
+        item=str(item).strip()
+        sizeItem=len(item)
+        print(f'Item length = {str(sizeItem)}')
+        if (sizeItem > 0) or (item!=None):
+            lsTranslated.append(GoogleTranslator(target=tgtLang).translate(item))
     #Cleaning lsTranslated
     for item in lsTranslated:
         if item is None:
