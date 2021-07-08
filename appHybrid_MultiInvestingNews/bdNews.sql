@@ -39,8 +39,7 @@ CREATE TABLE tbNew (
         txtsitesource varchar(100),
         commodity varchar(50),
         lsKeywordsOriginal text,
-        lsKeyWordsTranslated text,
-        completeHTML int
+        lsKeyWordsTranslated text
 );
 
 select * from tbNew;
