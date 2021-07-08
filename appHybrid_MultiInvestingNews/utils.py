@@ -71,7 +71,7 @@ fieldListOfKeyWordsTranslated=None
 fieldTitle='No title'
 fieldUrl=None
 fieldSourceSite=None 
-
+appName=None
 #End PostgreSQL fields for all news
 
 #End of Common items
@@ -111,7 +111,8 @@ def readFromInvesting():
             lsKeyWordsTranslated=list()
             #Start - PostgreSQL fields
             global fieldTimeStamp,fieldBase64NewContent,fieldCommodity,fieldListOfKeyWordsOriginal
-            global fieldListOfKeyWordsTranslated,fieldTitle,fieldUrl,fieldSourceSite
+            global fieldListOfKeyWordsTranslated,fieldTitle,fieldUrl,fieldSourceSite,appName
+            appName='Investing.com'
             fieldTimeStamp=None
             fieldBase64NewContent=None
             fieldCommodity=None
@@ -256,8 +257,8 @@ def readFromInvesting():
             #Start of PostgreSQL New Insertion
             
             #Case: The new is not in table, hence insert it.
-            strFields='(txtTitle,txtNew_content_Original,txtNew_content_Translated,txtBase64_contentOriginal,tspDateTime,commodity,lsKeywordsOriginal,lsKeyWordsTranslated,txturl,txtsitesource)'
-            strValues=f"('{fieldTitle}','{lsContentOriginal[0]}','{lsContentTranslated[0]}','{fieldBase64NewContent}','{fieldTimeStamp}','{fieldCommodity}','{fieldListOfKeyWordsOriginal}','{fieldListOfKeyWordsTranslated}','{fieldUrl}','{fieldSourceSite}')"
+            strFields='(txtTitle,txtNew_content_Original,txtNew_content_Translated,txtBase64_contentOriginal,tspDateTime,commodity,lsKeywordsOriginal,lsKeyWordsTranslated,txturl,txtsitesource,appName)'
+            strValues=f"('{fieldTitle}','{lsContentOriginal[0]}','{lsContentTranslated[0]}','{fieldBase64NewContent}','{fieldTimeStamp}','{fieldCommodity}','{fieldListOfKeyWordsOriginal}','{fieldListOfKeyWordsTranslated}','{fieldUrl}','{fieldSourceSite}','{appName}')"
             st=f"insert into tbNew {strFields} values {strValues} "
             bd.executeNonQuery(st)
             print('----------------New inserted succesfully!----------------') 
