@@ -42,6 +42,12 @@ Error:
 Solution:
 -ssl mode require , more info: https://dev-playbook.prospect.io/our-tools/sql-client/dbeaver
 -If database show frequent erros, check notifications in the accound , it MUST BE UNDER MAINTANCE.
+
+
+Changes:
+
+-Diccionario para commodities, para categorizar.
+-Encuentre o no commodity, agregue la noticia
     
 
 

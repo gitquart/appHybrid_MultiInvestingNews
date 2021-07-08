@@ -50,20 +50,27 @@ dicWebSite={
             
             
             }
-lsCommodity=['crude oil','oil','brent','natural gas','gold','silver','copper','coffee'] 
+
+dictCommodity={
+
+    'oil':['crude oil','oil','brent'],
+    'natural gas':['natural gas'],
+    'gold':['gold'],
+    'silver':['silver'],
+    'copper':['copper'],
+    'coffee':['coffee']
+}
+
 
 #Start PostgreSQL fields for all news
 fieldCommodity=None   
 fieldBase64NewContent=None 
 fieldTimeStamp=None
-fieldBase64NewContent=None
-fieldCompleteHTML=0
 fieldListOfKeyWordsOriginal=None
 fieldListOfKeyWordsTranslated=None
 fieldTitle='No title'
 fieldUrl=None
-fieldSourceSite=None
-fieldCommodity=None  
+fieldSourceSite=None 
 
 #End PostgreSQL fields for all news
 
@@ -103,12 +110,11 @@ def readFromInvesting():
             lsKeyWordsOriginal=list()
             lsKeyWordsTranslated=list()
             #Start - PostgreSQL fields
-            global fieldTimeStamp,fieldBase64NewContent,fieldCommodity,fieldCompleteHTML,fieldListOfKeyWordsOriginal
+            global fieldTimeStamp,fieldBase64NewContent,fieldCommodity,fieldListOfKeyWordsOriginal
             global fieldListOfKeyWordsTranslated,fieldTitle,fieldUrl,fieldSourceSite
             fieldTimeStamp=None
             fieldBase64NewContent=None
             fieldCommodity=None
-            fieldCompleteHTML=0
             fieldListOfKeyWordsOriginal=None
             fieldListOfKeyWordsTranslated=None
             fieldTitle='No title'
@@ -177,16 +183,15 @@ def readFromInvesting():
                 articleTitle=BROWSER.find_element_by_class_name('articleHeader')
                 strTitle=articleTitle.text
                 strTitleLower=strTitle.lower()
-                for commodity in lsCommodity:
-                    if commodity in strTitleLower:
-                        fieldCommodity=commodity
+                for key in dictCommodity:
+                    if fieldCommodity is not None:
                         break
-
-                #If the title does't have any commodity at all, then go to the next new
-                if fieldCommodity is None:
-                    print(f'----------End of Page {str(page)} New {str(idx+1)} NO COMMODITY FOUND-------------')
-                    BROWSER.execute_script("window.history.go(-1)")
-                    continue
+                    lsCurrent=None
+                    lsCurrent=dictCommodity[key]
+                    for commodityWord in lsCurrent:
+                        if commodityWord in strTitleLower:
+                            fieldCommodity=key
+                            break
 
                 fieldTitle=strTitle
                 time.sleep(3)
@@ -205,7 +210,6 @@ def readFromInvesting():
             else:
                 #---To know how many windows are open----
                 time.sleep(4)
-                fieldCompleteHTML=1
                 linkPopUp=None
                 linkPopUp=BROWSER.find_element_by_partial_link_text('Continue Reading')
                 fieldUrl=linkPopUp.get_attribute('href')
@@ -252,8 +256,8 @@ def readFromInvesting():
             #Start of PostgreSQL New Insertion
             
             #Case: The new is not in table, hence insert it.
-            strFields='(txtTitle,txtNew_content_Original,txtNew_content_Translated,txtBase64_contentOriginal,tspDateTime,commodity,lsKeywordsOriginal,lsKeyWordsTranslated,completeHTML,txturl,txtsitesource)'
-            strValues=f"('{fieldTitle}','{lsContentOriginal[0]}','{lsContentTranslated[0]}','{fieldBase64NewContent}','{fieldTimeStamp}','{fieldCommodity}','{fieldListOfKeyWordsOriginal}','{fieldListOfKeyWordsTranslated}',{fieldCompleteHTML},'{fieldUrl}','{fieldSourceSite}')"
+            strFields='(txtTitle,txtNew_content_Original,txtNew_content_Translated,txtBase64_contentOriginal,tspDateTime,commodity,lsKeywordsOriginal,lsKeyWordsTranslated,txturl,txtsitesource)'
+            strValues=f"('{fieldTitle}','{lsContentOriginal[0]}','{lsContentTranslated[0]}','{fieldBase64NewContent}','{fieldTimeStamp}','{fieldCommodity}','{fieldListOfKeyWordsOriginal}','{fieldListOfKeyWordsTranslated}','{fieldUrl}','{fieldSourceSite}')"
             st=f"insert into tbNew {strFields} values {strValues} "
             bd.executeNonQuery(st)
             print('----------------New inserted succesfully!----------------') 
@@ -554,24 +558,24 @@ def secondWindowMechanism(lsContent,lsContentTranslated,xPathElementSecondWindow
             sourceText=None
             sourceText=strContent.text
             strTitleLower=str(strTitle).lower()
-            for commodity in lsCommodity:
-                if commodity in strTitleLower:
-                    fieldCommodity=commodity
-                    fieldTitle=strTitle
+            for key in dictCommodity:
+                if fieldCommodity is not None:
                     break
-
-            #If the content does't have any commodity word at all, then go to the next new
-            if fieldCommodity is None:
-                res=False
+                lsCurrent=None
+                lsCurrent=dictCommodity[key]
+                for commodityWord in lsCurrent:
+                    if commodityWord in strTitleLower:
+                        fieldCommodity=key
+                        break
+          
+            lsResult=list()
+            lsResult=getSourceAndTranslatedText(sourceText,tgtLang)
+            if lsResult:
+                lsContent.append(lsResult[0])
+                lsContentTranslated.append(lsResult[1])
+                res=True
             else:
-                lsResult=list()
-                lsResult=getSourceAndTranslatedText(sourceText,tgtLang)
-                if lsResult:
-                    lsContent.append(lsResult[0])
-                    lsContentTranslated.append(lsResult[1])
-                    res=True
-                else:
-                    res=False    
+                res=False    
             
            
             #Close Window 2
