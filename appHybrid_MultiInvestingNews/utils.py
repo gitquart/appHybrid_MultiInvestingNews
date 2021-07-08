@@ -226,7 +226,7 @@ def readFromInvesting():
                     BROWSER.execute_script("arguments[0].click();",btnPopUpClose)
 
                 if not res:
-                    print(f'----------End of Page {str(page)} New {str(idx+1)} NO COMMODITY FOUND OR ALREADY IN TABLE-------------')
+                    print(f'----------End of Page {str(page)} New {str(idx+1)} ALREADY IN TABLE-------------')
                     continue    
                  
             #START OF TF-IDF - keyword process
