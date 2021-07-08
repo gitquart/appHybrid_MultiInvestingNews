@@ -460,6 +460,8 @@ def getSourceAndTranslatedText(sourceText,tgtLang):
     #getSourceAndTranslatedText returns both (original and translated text) clean.
     global fieldBase64NewContent
     res=False
+    sbytes=None
+    lsRes=None
     lsTranslated=list()
     lsSourceText=list()
    
@@ -486,13 +488,10 @@ def getSourceAndTranslatedText(sourceText,tgtLang):
      #Convert the original content to base64 to check if we have it already
     #Tutorial : https://base64.guru/developers/python/examples/decode-pdf
     #Convert to base64 the original text (position 0)
-    sbytes=None
     sbytes = base64.b64encode(bytes(sourceContent_clean,'utf-8'))
     fieldBase64NewContent=sbytes.decode('utf-8') 
-    lsRes=None
     query=f"select id from tbNew where txtBase64_contentoriginal='{fieldBase64NewContent}'"
     lsRes=bd.getQuery(query) 
-
     if not lsRes:
         #Case: The record does not exist, hence translate it and keep going
         for item in lsSourceText:

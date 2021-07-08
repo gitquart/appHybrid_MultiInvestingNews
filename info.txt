@@ -2,12 +2,11 @@ Web sites to read:
 
 1) https://cryptonews.com/
 2) https://finance.yahoo.com/
-3) https://www.cnbc.com/
-4) https://www.dailyfx.com/
-5) https://www.fxstreet.com/
-6) https://www.elfinanciero.com.mx/
-7) https://www.advisorperspectives.com/
-8) https://www.investopedia.com/
+3) https://www.dailyfx.com/
+4) https://www.fxstreet.com/
+5) https://www.elfinanciero.com.mx/
+6) https://www.advisorperspectives.com/
+7) https://www.investopedia.com/
 
 
 1) Testing Documentation
@@ -28,9 +27,6 @@ FXStreet: Menu "últimas noticias"
 El financiero: Menu "Mercados" y leer noticias del costado.
 Investopedia: 3 strips menu ->Markets y Trading News
 
-Para todos los sitios:
--Obtener las noticias en español e inglés
--Leer todas las noticias (no filtrar por título)
 
 Hints:
 For Xpath:
@@ -39,13 +35,13 @@ For Xpath:
 
 Heroku database:
 
-For some reason, some day in the morning I could not connect to heroku , error was 
+Error:
 
-"psql: FATAL: remaining connection slots are reserved for non-replication superuser connections"
+1) "psql: FATAL: remaining connection slots are reserved for non-replication superuser connections"
 
-It is solved by setting ssl mode require , more info: https://dev-playbook.prospect.io/our-tools/sql-client/dbeaver
-
-If database show frequent erros, check notifications in the accound , it MUST BE UNDER MAINTANCE.
+Solution:
+-ssl mode require , more info: https://dev-playbook.prospect.io/our-tools/sql-client/dbeaver
+-If database show frequent erros, check notifications in the accound , it MUST BE UNDER MAINTANCE.
     
 
 
