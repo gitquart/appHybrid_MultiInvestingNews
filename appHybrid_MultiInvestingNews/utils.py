@@ -51,8 +51,21 @@ dicWebSite={
             
             }
 lsCommodity=['crude oil','oil','brent','natural gas','gold','silver','copper','coffee'] 
+
+#Start PostgreSQL fields for all news
 fieldCommodity=None   
-fieldBase64NewContent=None     
+fieldBase64NewContent=None 
+fieldTimeStamp=None
+fieldBase64NewContent=None
+fieldCompleteHTML=0
+fieldListOfKeyWordsOriginal=None
+fieldListOfKeyWordsTranslated=None
+fieldTitle='No title'
+fieldUrl=None
+fieldSourceSite=None
+fieldCommodity=None  
+
+#End PostgreSQL fields for all news
 
 #End of Common items
 
@@ -90,16 +103,18 @@ def readFromInvesting():
             lsKeyWordsOriginal=list()
             lsKeyWordsTranslated=list()
             #Start - PostgreSQL fields
-            global fieldCommodity,fieldBase64NewContent
+            global fieldTimeStamp,fieldBase64NewContent,fieldCommodity,fieldCompleteHTML,fieldListOfKeyWordsOriginal
+            global fieldListOfKeyWordsTranslated,fieldTitle,fieldUrl,fieldSourceSite
             fieldTimeStamp=None
             fieldBase64NewContent=None
+            fieldCommodity=None
             fieldCompleteHTML=0
             fieldListOfKeyWordsOriginal=None
             fieldListOfKeyWordsTranslated=None
             fieldTitle='No title'
             fieldUrl=None
             fieldSourceSite=None
-            fieldCommodity=None
+            
             #End -  PostgreSQL Fields
             time.sleep(4)
             #For source: Those from "lsSource" list have "span", the rest have "div"
@@ -486,7 +501,12 @@ def getSourceAndTranslatedText(sourceText,tgtLang):
 
     if not lsRes:
         #Case: The record does not exist, hence translate it and keep going
-        lsTranslated=GoogleTranslator(target=tgtLang).translate_batch(lsSourceText_AllClean)
+        for item in lsSourceText_AllClean:
+            try:
+                lsTranslated.append(GoogleTranslator(target=tgtLang).translate(item))
+            except:
+                print(f'Item : {item} couldn not be translated...continue')
+                continue    
         #Cleaning lsTranslated
         for item in lsTranslated:
             if item is None:
@@ -522,7 +542,7 @@ def returnChromeSettings():
 
 def secondWindowMechanism(lsContent,lsContentTranslated,xPathElementSecondWindow,tgtLang):
     if len(BROWSER.window_handles)>1:
-        global fieldCommodity
+        global fieldCommodity,fieldTitle
         res=None
         bAd=False
         second_window=BROWSER.window_handles[1]
@@ -531,17 +551,19 @@ def secondWindowMechanism(lsContent,lsContentTranslated,xPathElementSecondWindow
         time.sleep(5)
         #Get the text from second window and append it to lsContent
         strContent=None
+        strTitle=None
         try:
             strContent=BROWSER.find_element_by_xpath(xPathElementSecondWindow)
+            strTitle=BROWSER.title
         except NameError as error:
             bAd=True   
         if strContent and (not bAd):
             sourceText=None
             sourceText=strContent.text
-            sourceTextLower=sourceText.lower()
             for commodity in lsCommodity:
-                if commodity in sourceTextLower:
+                if commodity in strTitle:
                     fieldCommodity=commodity
+                    fieldTitle=strTitle
                     break
 
             #If the content does't have any commodity word at all, then go to the next new
