@@ -255,15 +255,13 @@ def readFromInvesting():
             #End of TF IDF - Keyword process
     
             #Start of PostgreSQL New Insertion
-            
-            #Case: The new is not in table, hence insert it.
             strFields='(txtTitle,txtNew_content_Original,txtNew_content_Translated,txtBase64_contentOriginal,tspDateTime,commodity,lsKeywordsOriginal,lsKeyWordsTranslated,txturl,txtsitesource,appName)'
             strValues=f"('{fieldTitle}','{lsContentOriginal[0]}','{lsContentTranslated[0]}','{fieldBase64NewContent}','{fieldTimeStamp}','{fieldCommodity}','{fieldListOfKeyWordsOriginal}','{fieldListOfKeyWordsTranslated}','{fieldUrl}','{fieldSourceSite}','{appName}')"
             st=f"insert into tbNew {strFields} values {strValues} "
             bd.executeNonQuery(st)
-            print('----------------New inserted succesfully!----------------') 
-              
+            print('----------------New inserted succesfully!----------------')  
             #End of PostgreSQL New Insertion
+            
             print(f'----------End of Page {str(page)} New {str(idx+1)}-------------')
             if strSource in lsSources:
                 BROWSER.execute_script("window.history.go(-1)")      
