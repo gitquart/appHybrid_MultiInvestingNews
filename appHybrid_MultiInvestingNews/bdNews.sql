@@ -44,3 +44,5 @@ CREATE TABLE tbNew (
 );
 
 select * from tbNew;
+
+delete from tbnew where id=3;
