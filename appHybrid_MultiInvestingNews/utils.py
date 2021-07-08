@@ -138,10 +138,11 @@ def readFromInvesting():
                     continue
 
             if txtSource:
-                strSource=txtSource.text    
-                strSource=strSource.split(' ')[1]
-                fieldSourceSite=strSource
+                strSource=txtSource.text  
+                strSource=str(strSource.replace('By','')).strip() 
+                fieldSourceSite= strSource
                 print(f'Source :{strSource}')
+                
 
             linkArticle=devuelveElemento(f'/html/body/div[5]/section/div[4]/article[{str(idx+1)}]/div[1]/a')
             fieldUrl=linkArticle.get_attribute('href')
@@ -461,13 +462,13 @@ def getSourceAndTranslatedText(sourceText,tgtLang):
     res=False
     lsTranslated=list()
     lsSourceText=list()
-    lsSourceText_AllClean=list()
    
     """
     isspace is True when '__' or more, '' this would be False
     """ 
     #Start of CLEANING PROCESS      
     #Remove text that may cause troubles: No content
+    #Split the text with '\n' to translate item length less than 5,000 
     lsSourceText=sourceText.split('\n')
     #Analize every character in item, if it remains "space" , wipe it out
     for item in lsSourceText:
@@ -476,18 +477,11 @@ def getSourceAndTranslatedText(sourceText,tgtLang):
             if character.isalnum() or character.isspace() or (not character):
                 newString+=character
                 continue
-
         idx=lsSourceText.index(item)  
         lsSourceText[idx]=newString     
-          
-
-    for item in lsSourceText:
-        if (len(item)>0):
-            if not item.isspace():
-                lsSourceText_AllClean.append(item)
 
     #END of CLEANING PROCESS
-    sourceContent_clean=' '.join(lsSourceText_AllClean)
+    sourceContent_clean=' '.join(lsSourceText)
     #Once the original content is clean, convert it to base64 and check in database. 
      #Convert the original content to base64 to check if we have it already
     #Tutorial : https://base64.guru/developers/python/examples/decode-pdf
@@ -501,7 +495,7 @@ def getSourceAndTranslatedText(sourceText,tgtLang):
 
     if not lsRes:
         #Case: The record does not exist, hence translate it and keep going
-        for item in lsSourceText_AllClean:
+        for item in lsSourceText:
             try:
                 lsTranslated.append(GoogleTranslator(target=tgtLang).translate(item))
             except:
@@ -560,8 +554,9 @@ def secondWindowMechanism(lsContent,lsContentTranslated,xPathElementSecondWindow
         if strContent and (not bAd):
             sourceText=None
             sourceText=strContent.text
+            strTitleLower=str(strTitle).lower()
             for commodity in lsCommodity:
-                if commodity in strTitle:
+                if commodity in strTitleLower:
                     fieldCommodity=commodity
                     fieldTitle=strTitle
                     break
