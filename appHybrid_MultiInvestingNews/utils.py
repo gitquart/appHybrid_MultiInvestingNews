@@ -431,7 +431,7 @@ def readFromInvestopedia(option):
                 #START OF TF-IDF - keyword process
     
                 df_tfidf_original=getCompleteListOfKeyWords(lsContentOriginal) 
-                fieldListOfKeyWordsOriginal=';'.join(df_tfidf_original[0:40])
+                fieldListOfKeyWordsOriginal=getKeyWordsPairListFromDataFrame(df_tfidf_original[0:40])
 
                 df_tfidf_translated=getCompleteListOfKeyWords(lsContentTranslated) 
                 fieldListOfKeyWordsTranslated=getKeyWordsPairListFromDataFrame(df_tfidf_translated[0:40])
@@ -471,7 +471,7 @@ def readFromInvestopedia(option):
                 #START OF TF-IDF - keyword process
     
                 df_tfidf_original=getCompleteListOfKeyWords(lsContentOriginal) 
-                fieldListOfKeyWordsOriginal=';'.join(df_tfidf_original[0:40])
+                fieldListOfKeyWordsOriginal=getKeyWordsPairListFromDataFrame(df_tfidf_original[0:40])
 
                 df_tfidf_translated=getCompleteListOfKeyWords(lsContentTranslated) 
                 fieldListOfKeyWordsTranslated=getKeyWordsPairListFromDataFrame(df_tfidf_translated[0:40])
