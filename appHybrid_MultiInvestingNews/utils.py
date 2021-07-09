@@ -84,7 +84,7 @@ appName=None
 lsSources=['Reuters','Investing.com','Bloomberg']
 #End of Investing.com items
 
-        
+#LISTO       
 def readFromInvesting():
     returnChromeSettings()
     time.sleep(4)
@@ -260,7 +260,7 @@ def readFromInvesting():
         print(f'-End of page {str(page)}-')
     #When all the pages in the loop are done    
     BROWSER.quit()
-          
+#LISTO      
 def readFromDailyFX():
     returnChromeSettings()
     for page in range(1,4):
