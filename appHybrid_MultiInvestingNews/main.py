@@ -12,7 +12,7 @@ def main():
             tool.readFromDailyFX()
         if mainOption == 'investopedia':
             #options: market, trading
-            tool.readFromInvestopedia('market') 
+            tool.readFromInvestopedia('trading') 
         if mainOption == 'cryptonews':
             tool.readFromCryptonews()
         if mainOption == 'yahoo':

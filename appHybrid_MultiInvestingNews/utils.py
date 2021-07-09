@@ -104,8 +104,6 @@ def readFromInvesting():
             #Check Source
             lsContentOriginal=list()
             lsContentTranslated=list()
-            lsKeyWordsOriginal=list()
-            lsKeyWordsTranslated=list()
             strTitle=None
             strSource=None
             txtDateFilter=None
@@ -177,7 +175,6 @@ def readFromInvesting():
             # https://strftime.org/ : This format %Y-%m-%d %H:%M gets 24 hour based.
             fieldTimeStamp = date_time_new.strftime(formatTimeForPostgreSQL)   
               
-            
             #End of field Time setting
             if strSource in lsSources:
                 articleContent=None
@@ -198,7 +195,7 @@ def readFromInvesting():
                         lsContentOriginal.append(lsResult[0])
                         lsContentTranslated.append(lsResult[1])
                     else:
-                        print(f'----------End of Page {str(page)} New {str(idx+1)} ALREADY IN TABLE-------------')
+                        print(f'New already in database. App: {appName}')
                         BROWSER.execute_script("window.history.go(-1)")
                         continue    
             else:
@@ -220,38 +217,24 @@ def readFromInvesting():
                     BROWSER.execute_script("arguments[0].click();",btnPopUpClose)
 
                 if not res:
-                    print(f'----------End of Page {str(page)} New {str(idx+1)} ALREADY IN TABLE-------------')
+                    print(f'New already in database. App: {appName}')
                     continue    
                  
             #START OF TF-IDF - keyword process
-            """
-            In this dataframe, you can get the name and its weight by iterating each row:
-                Feature/word = row[1].name
-                 Weight   = row[1].values[0]
-            """
             df_tfidf_original=getCompleteListOfKeyWords(lsContentOriginal) 
-            for row in df_tfidf_original[0:40].iterrows():
-                strLine=None
-                strLine=f'{str(row[1].name)},{str(row[1].values[0])}'
-                lsKeyWordsOriginal.append(strLine)
+            fieldListOfKeyWordsOriginal=getKeyWordsPairListFromDataFrame(df_tfidf_original[0:40])
             del df_tfidf_original
-            fieldListOfKeyWordsOriginal=';'.join(lsKeyWordsOriginal)
 
             df_tfidf_translated=getCompleteListOfKeyWords(lsContentTranslated) 
-            for row in df_tfidf_translated[0:40].iterrows():
-                strLine=None
-                strLine=f'{str(row[1].name)},{str(row[1].values[0])}'
-                lsKeyWordsTranslated.append(strLine)
+            fieldListOfKeyWordsTranslated=getKeyWordsPairListFromDataFrame(df_tfidf_translated[0:40])
             del df_tfidf_translated
-            fieldListOfKeyWordsTranslated=';'.join(lsKeyWordsTranslated)
-
             #End of TF IDF - Keyword process
-    
+
             #Start of PostgreSQL New Insertion
             insertNewInTable(fieldTitle,lsContentOriginal[0],lsContentTranslated[0],fieldBase64NewContent,fieldTimeStamp,fieldCommodity,fieldListOfKeyWordsOriginal,fieldListOfKeyWordsTranslated,fieldUrl,fieldSourceSite,appName)  
             #End of PostgreSQL New Insertion
             
-            print(f'----------End of Page {str(page)} New {str(idx+1)}-------------')
+            print(f'----------End of New {str(idx+1)} on Page {str(page)}-------------')
             if strSource in lsSources:
                 BROWSER.execute_script("window.history.go(-1)")      
             time.sleep(5)
@@ -287,12 +270,8 @@ def readFromDailyFX():
             #Start local variables
             lsContentOriginal=list()
             lsContentTranslated=list()
-            lsKeyWordsOriginal=list()
-            lsKeyWordsTranslated=list()
-            txtTitle=None
             txtDateTime=None
             #End local variables
-
             idx=lsNews.index(objNew)
             #Filter by todays' news
             txtDateTime=BROWSER.find_element_by_xpath(f'/html/body/div[5]/div/div[3]/div/div[1]/div[1]/a[{str(idx+1)}]/div/div[1]/span')
@@ -311,38 +290,23 @@ def readFromDailyFX():
             res=secondWindowMechanism(lsContentOriginal,lsContentTranslated,'/html/body/div[5]/div/main/article/section/div/div[1]/div[1]/div','es')  
 
             if not res:
-                print(f'----------End of Page {str(page)} New {str(idx+1)} ALREADY IN TABLE-------------')
+                print(f'New already in database. App: {appName}')
                 continue  
-            
-            
+             
             #START OF TF-IDF - keyword process
-            """
-            In this dataframe, you can get the name and its weight by iterating each row:
-                Feature/word = row[1].name
-                 Weight   = row[1].values[0]
-            """
             df_tfidf_original=getCompleteListOfKeyWords(lsContentOriginal) 
-            for row in df_tfidf_original[0:40].iterrows():
-                strLine=None
-                strLine=f'{str(row[1].name)},{str(row[1].values[0])}'
-                lsKeyWordsOriginal.append(strLine)
+            fieldListOfKeyWordsOriginal=getKeyWordsPairListFromDataFrame(df_tfidf_original[0:40])
             del df_tfidf_original
-            fieldListOfKeyWordsOriginal=';'.join(lsKeyWordsOriginal)
 
             df_tfidf_translated=getCompleteListOfKeyWords(lsContentTranslated) 
-            for row in df_tfidf_translated[0:40].iterrows():
-                strLine=None
-                strLine=f'{str(row[1].name)},{str(row[1].values[0])}'
-                lsKeyWordsTranslated.append(strLine)
+            fieldListOfKeyWordsTranslated=getKeyWordsPairListFromDataFrame(df_tfidf_translated[0:40])
             del df_tfidf_translated
-            fieldListOfKeyWordsTranslated=';'.join(lsKeyWordsTranslated)
-
             #End of TF IDF - Keyword process
+
             #Start of PostgreSQL New Insertion
             insertNewInTable(fieldTitle,lsContentOriginal[0],lsContentTranslated[0],fieldBase64NewContent,fieldTimeStamp,fieldCommodity,fieldListOfKeyWordsOriginal,fieldListOfKeyWordsTranslated,fieldUrl,fieldSourceSite,appName)  
             #End of PostgreSQL New Insertion
-                
-                 
+                            
         print(f'End of page {str(page)}')  
         
     BROWSER.quit()
@@ -382,20 +346,23 @@ def readFromInvestopedia(option):
     linkNew=None
     linkNew=BROWSER.find_element_by_xpath('/html/body/main/div[1]/div[2]/section/a')
     hrefLink=linkNew.get_attribute('href')
+    fieldUrl=hrefLink
     BROWSER.execute_script('window.open("'+hrefLink+'")','_blank')
     res=None
     res=secondWindowMechanism(lsContentOriginal,lsContentTranslated,'/html/body/main/div[2]/article/div[2]/div[1]','es')
     if not res:
-        print('Main new already in database,continue with Section 1 & 2...')
+        print(f'New already in database. App: {appName}')
     else:
         #START OF TF-IDF - keyword process
         df_tfidf_original=getCompleteListOfKeyWords(lsContentOriginal) 
         fieldListOfKeyWordsOriginal=getKeyWordsPairListFromDataFrame(df_tfidf_original[0:40])
+        del df_tfidf_original
 
         df_tfidf_translated=getCompleteListOfKeyWords(lsContentTranslated) 
         fieldListOfKeyWordsTranslated=getKeyWordsPairListFromDataFrame(df_tfidf_translated[0:40])
-
+        del df_tfidf_translated
         #End of TF IDF - Keyword process
+
         #Start of PostgreSQL New Insertion
         insertNewInTable(fieldTitle,lsContentOriginal[0],lsContentTranslated[0],fieldBase64NewContent,fieldTimeStamp,fieldCommodity,fieldListOfKeyWordsOriginal,fieldListOfKeyWordsTranslated,fieldUrl,fieldSourceSite,appName)  
         #End of PostgreSQL New Insertion
@@ -426,7 +393,7 @@ def readFromInvestopedia(option):
             res=None
             res=secondWindowMechanism(lsContentOriginal,lsContentTranslated,'/html/body/main/div[2]/article/div[2]/div[1]','es')
             if not res:
-                print('Main new already in database,continue with Section 1 & 2...')
+                print(f'New already in database. App: {appName}')
             else:
                 #START OF TF-IDF - keyword process
     
@@ -466,7 +433,7 @@ def readFromInvestopedia(option):
             res=None
             res=secondWindowMechanism(lsContentOriginal,'/html/body/main/div[2]/article/div[2]/div[1]','es')
             if not res:
-                print('Main new already in database,continue with Section 1 & 2...')
+                print(f'New already in database. App: {appName}')
             else:
                 #START OF TF-IDF - keyword process
     
@@ -621,7 +588,6 @@ def getKeyWordsPairListFromDataFrame(dataFrame):
         strLine=None
         strLine=f'{str(row[1].name)},{str(row[1].values[0])}'
         lsReturn.append(strLine)
-    del dataFrame
 
     return ';'.join(lsReturn)
 
@@ -635,9 +601,9 @@ def insertNewInTable(fieldTitle,originalContent,translatedContent,fieldBase64New
     res=False
     res=bd.executeNonQuery(st)
     if res:
-        print('----------------New inserted succesfully!----------------')
+        print(f'----------------New inserted succesfully on App: {appName}----------------')
     else:
-        print('---------------New content was not inserted...please check----------')      
+        print(f'---------------New content was not inserted on App: {appName}...please check----------')      
 
 def getCommodity(titleInLowerCase,dicToSearch):
     global fieldCommodity
