@@ -1,5 +1,6 @@
 import json
 import os
+from pickle import NONE
 from selenium import webdriver
 import chromedriver_autoinstaller
 import time
@@ -61,8 +62,7 @@ dictCommodity={
     'gold':['gold'],
     'silver':['silver'],
     'copper':['copper'],
-    'coffee':['coffee'],
-    'didi':['didi']
+    'coffee':['coffee']
 }
 
 
@@ -305,8 +305,6 @@ def readFromDailyFX():
             #If code reaches this line, therefore is a today's new, keep going with process
             fieldTimeStamp=str(txtDateTime[0:16]).replace('T',' ')
             #Get Title & Commodity     
-            txtTitle=BROWSER.find_element_by_xpath(f'/html/body/div[5]/div/div[3]/div/div[1]/div[1]/a[{str(idx+1)}]/div/span')
-            fieldTitle=txtTitle.text
             hrefLink=objNew.get_attribute('href')
             fieldUrl=hrefLink
             BROWSER.execute_script('window.open("'+hrefLink+'")','_blank')
@@ -357,28 +355,133 @@ def readFromInvestopedia(option):
     else:
         BROWSER.get(dicWebSite['investopedia_trading'])
 
+    global fieldTimeStamp,fieldBase64NewContent,fieldCommodity,fieldListOfKeyWordsOriginal
+    global fieldListOfKeyWordsTranslated,fieldTitle,fieldUrl,fieldSourceSite,appName  
+    #Start - PostgreSQL fields
+    fieldBase64NewContent=None
+    fieldCommodity=None
+    fieldListOfKeyWordsOriginal=None
+    fieldListOfKeyWordsTranslated=None
+    fieldTitle=None
+    fieldUrl=None
+    fieldSourceSite=None
+    fieldTimeStamp=None
+    appName=None
+    #End -  PostgreSQL Fields  
+    appName=f'Investopedia {option}'
+    fieldSourceSite=appName
+    #Investopedia, for Market & trading , news don't have DATE or TIME, hence add current DateTime
+    today=None
+    today=datetime.now().strftime(formatTimeForPostgreSQL)
+    fieldTimeStamp=today
+    #Get the first Main New
+    #Start local variables
+    lsContentOriginal=list()
+    lsContentTranslated=list()
+    #End local variables
+    linkNew=None
+    linkNew=BROWSER.find_element_by_xpath('/html/body/main/div[1]/div[2]/section/a')
+    hrefLink=linkNew.get_attribute('href')
+    BROWSER.execute_script('window.open("'+hrefLink+'")','_blank')
+    res=None
+    res=secondWindowMechanism(lsContentOriginal,lsContentTranslated,'/html/body/main/div[2]/article/div[2]/div[1]','es')
+    if not res:
+        print('Main new already in database,continue with Section 1 & 2...')
+    else:
+        #START OF TF-IDF - keyword process
+        df_tfidf_original=getCompleteListOfKeyWords(lsContentOriginal) 
+        fieldListOfKeyWordsOriginal=getKeyWordsPairListFromDataFrame(df_tfidf_original[0:40])
+
+        df_tfidf_translated=getCompleteListOfKeyWords(lsContentTranslated) 
+        fieldListOfKeyWordsTranslated=getKeyWordsPairListFromDataFrame(df_tfidf_translated[0:40])
+
+        #End of TF IDF - Keyword process
+        #Start of PostgreSQL New Insertion
+        insertNewInTable(fieldTitle,lsContentOriginal[0],lsContentTranslated[0],fieldBase64NewContent,fieldTimeStamp,fieldCommodity,fieldListOfKeyWordsOriginal,fieldListOfKeyWordsTranslated,fieldUrl,fieldSourceSite,appName)  
+        #End of PostgreSQL New Insertion
+
+
     lsFirstCard=devuelveListaElementos('/html/body/main/div[1]/div[2]/section/ul/li')
     if lsFirstCard:
         for card in lsFirstCard:
-            lsContent=list()
+            #Start - PostgreSQL fields
+            fieldBase64NewContent=None
+            fieldCommodity=None
+            fieldListOfKeyWordsOriginal=None
+            fieldListOfKeyWordsTranslated=None
+            fieldTitle=None
+            fieldUrl=None
+            fieldSourceSite=None
+            fieldSourceSite=appName
+            #End -  PostgreSQL Fields
+            #Start local variables
+            lsContentOriginal=list()
             lsContentTranslated=list()
+            #End local variables
             linkNew=None
             linkNew=card.find_element_by_xpath('.//a')
             hrefLink=linkNew.get_attribute('href')
+            fieldUrl=hrefLink
             BROWSER.execute_script('window.open("'+hrefLink+'")','_blank')
-            secondWindowMechanism(lsContent,lsContentTranslated,'/html/body/main/div[2]/article/div[2]/div[1]','es')
+            res=None
+            res=secondWindowMechanism(lsContentOriginal,lsContentTranslated,'/html/body/main/div[2]/article/div[2]/div[1]','es')
+            if not res:
+                print('Main new already in database,continue with Section 1 & 2...')
+            else:
+                #START OF TF-IDF - keyword process
+    
+                df_tfidf_original=getCompleteListOfKeyWords(lsContentOriginal) 
+                fieldListOfKeyWordsOriginal=';'.join(df_tfidf_original[0:40])
+
+                df_tfidf_translated=getCompleteListOfKeyWords(lsContentTranslated) 
+                fieldListOfKeyWordsTranslated=getKeyWordsPairListFromDataFrame(df_tfidf_translated[0:40])
+
+                #End of TF IDF - Keyword process
+                #Start of PostgreSQL New Insertion
+                insertNewInTable(fieldTitle,lsContentOriginal[0],lsContentTranslated[0],fieldBase64NewContent,fieldTimeStamp,fieldCommodity,fieldListOfKeyWordsOriginal,fieldListOfKeyWordsTranslated,fieldUrl,fieldSourceSite,appName)  
+                #End of PostgreSQL New Insertion
              
     lsSecondCard=devuelveListaElementos('/html/body/main/div[2]/div[2]/ul/li')          
     if lsSecondCard:
         for card in lsSecondCard:
-            lsContent=list()
+            #Start - PostgreSQL fields
+            fieldBase64NewContent=None
+            fieldCommodity=None
+            fieldListOfKeyWordsOriginal=None
+            fieldListOfKeyWordsTranslated=None
+            fieldTitle=None
+            fieldUrl=None
+            fieldSourceSite=None
+            fieldSourceSite=appName
+            #End -  PostgreSQL Fields
+            #Start local variables
+            lsContentOriginal=list()
+            lsContentTranslated=list()
+            #End local variables
             linkNew=None
             linkNew=card.find_element_by_xpath('.//a')
             hrefLink=linkNew.get_attribute('href')
+            fieldUrl=hrefLink
             BROWSER.execute_script('window.open("'+hrefLink+'")','_blank')
-            secondWindowMechanism(lsContent,'/html/body/main/div[2]/article/div[2]/div[1]','es')
+            res=None
+            res=secondWindowMechanism(lsContentOriginal,'/html/body/main/div[2]/article/div[2]/div[1]','es')
+            if not res:
+                print('Main new already in database,continue with Section 1 & 2...')
+            else:
+                #START OF TF-IDF - keyword process
+    
+                df_tfidf_original=getCompleteListOfKeyWords(lsContentOriginal) 
+                fieldListOfKeyWordsOriginal=';'.join(df_tfidf_original[0:40])
 
-    #BROWSER.quit()
+                df_tfidf_translated=getCompleteListOfKeyWords(lsContentTranslated) 
+                fieldListOfKeyWordsTranslated=getKeyWordsPairListFromDataFrame(df_tfidf_translated[0:40])
+
+                #End of TF IDF - Keyword process
+                #Start of PostgreSQL New Insertion
+                insertNewInTable(fieldTitle,lsContentOriginal[0],lsContentTranslated[0],fieldBase64NewContent,fieldTimeStamp,fieldCommodity,fieldListOfKeyWordsOriginal,fieldListOfKeyWordsTranslated,fieldUrl,fieldSourceSite,appName)  
+                #End of PostgreSQL New Insertion
+
+    BROWSER.quit()
     
 def readFromCryptonews():
     returnChromeSettings()
@@ -507,6 +610,22 @@ def readFromElFinanciero():
 
 #SECTION - START OF COMMON METHODS
 
+def getKeyWordsPairListFromDataFrame(dataFrame):
+    """
+        In this dataframe, you can get the name and its weight by iterating each row:
+        Feature/word = row[1].name
+        Weight   = row[1].values[0]
+    """
+    lsReturn=list()
+    for row in dataFrame.iterrows():
+        strLine=None
+        strLine=f'{str(row[1].name)},{str(row[1].values[0])}'
+        lsReturn.append(strLine)
+    del dataFrame
+
+    return ';'.join(lsReturn)
+
+
 def insertNewInTable(fieldTitle,originalContent,translatedContent,fieldBase64NewContent,fieldTimeStamp,fieldCommodity,fieldListOfKeyWordsOriginal,fieldListOfKeyWordsTranslated,fieldUrl,fieldSourceSite,appName):
     strFields=None
     strValues=None
@@ -622,6 +741,7 @@ def secondWindowMechanism(lsContent,lsContentTranslated,xPathElementSecondWindow
         try:
             strContent=BROWSER.find_element_by_xpath(xPathElementSecondWindow)
             strTitle=BROWSER.title
+            fieldTitle=strTitle
         except NameError as error:
             bAd=True   
         if strContent and (not bAd):
