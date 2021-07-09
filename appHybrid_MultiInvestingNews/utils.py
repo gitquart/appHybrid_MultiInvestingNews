@@ -61,7 +61,8 @@ dictCommodity={
     'gold':['gold'],
     'silver':['silver'],
     'copper':['copper'],
-    'coffee':['coffee']
+    'coffee':['coffee'],
+    'didi':['didi']
 }
 
 
@@ -185,17 +186,7 @@ def readFromInvesting():
                 articleContent=devuelveElemento('/html/body/div[5]/section/div[3]')
                 articleTitle=BROWSER.find_element_by_class_name('articleHeader')
                 strTitle=articleTitle.text
-                strTitleLower=strTitle.lower()
-                for key in dictCommodity:
-                    if fieldCommodity is not None:
-                        break
-                    lsCurrent=None
-                    lsCurrent=dictCommodity[key]
-                    for commodityWord in lsCurrent:
-                        if commodityWord in strTitleLower:
-                            fieldCommodity=key
-                            break
-
+                fieldCommodity=getCommodity(strTitle.lower(),dictCommodity)
                 fieldTitle=strTitle
                 time.sleep(3)
                 if articleContent:
@@ -316,19 +307,6 @@ def readFromDailyFX():
             #Get Title & Commodity     
             txtTitle=BROWSER.find_element_by_xpath(f'/html/body/div[5]/div/div[3]/div/div[1]/div[1]/a[{str(idx+1)}]/div/span')
             fieldTitle=txtTitle.text
-            strTitleLower=fieldTitle.lower()
-            for key in dictCommodity:
-                if fieldCommodity is not None:
-                    break
-                lsCurrent=None
-                lsCurrent=dictCommodity[key]
-                for commodityWord in lsCurrent:
-                    if commodityWord in strTitleLower:
-                        fieldCommodity=key
-                        break    
-            
-
-            #Get Commodity
             hrefLink=objNew.get_attribute('href')
             fieldUrl=hrefLink
             BROWSER.execute_script('window.open("'+hrefLink+'")','_blank')
@@ -542,6 +520,15 @@ def insertNewInTable(fieldTitle,originalContent,translatedContent,fieldBase64New
     else:
         print('---------------New content was not inserted...please check----------')      
 
+def getCommodity(titleInLowerCase,dicToSearch):
+    global fieldCommodity
+    for key in dicToSearch:
+        lsCurrent=None
+        lsCurrent=dictCommodity[key]
+        for commodityWord in lsCurrent:
+            if commodityWord in titleInLowerCase:
+                return key
+                   
 
 def getSourceAndTranslatedText(sourceText,tgtLang):
     #getSourceAndTranslatedText returns both (original and translated text) clean.
@@ -640,17 +627,7 @@ def secondWindowMechanism(lsContent,lsContentTranslated,xPathElementSecondWindow
         if strContent and (not bAd):
             sourceText=None
             sourceText=strContent.text
-            strTitleLower=str(strTitle).lower()
-            for key in dictCommodity:
-                if fieldCommodity is not None:
-                    break
-                lsCurrent=None
-                lsCurrent=dictCommodity[key]
-                for commodityWord in lsCurrent:
-                    if commodityWord in strTitleLower:
-                        fieldCommodity=key
-                        break
-          
+            fieldCommodity=getCommodity(str(strTitle).lower(),dictCommodity)
             lsResult=list()
             lsResult=getSourceAndTranslatedText(sourceText,tgtLang)
             if lsResult:
