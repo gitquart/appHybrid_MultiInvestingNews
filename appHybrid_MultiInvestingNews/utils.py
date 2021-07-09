@@ -465,7 +465,8 @@ def readFromInvestopedia(option):
                 #End of PostgreSQL New Insertion
 
     BROWSER.quit()
-    
+
+#Listo    
 def readFromCryptonews():
     returnChromeSettings()
     BROWSER.get(dicWebSite['cryptonews'])
