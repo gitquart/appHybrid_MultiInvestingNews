@@ -182,7 +182,7 @@ def readFromInvesting():
                 #Case: Sources which news open in Investing.com platform
                 articleContent=devuelveElemento('/html/body/div[5]/section/div[3]')
                 articleTitle=BROWSER.find_element_by_class_name('articleHeader')
-                strTitle=articleTitle.text
+                strTitle=getTitleClean(articleTitle.text)
                 fieldCommodity=getCommodity(strTitle.lower(),dictCommodity)
                 fieldTitle=strTitle
                 time.sleep(3)
@@ -221,10 +221,12 @@ def readFromInvesting():
                     continue    
                  
             #START OF TF-IDF - keyword process
+            df_tfidf_original=None
             df_tfidf_original=getCompleteListOfKeyWords(lsContentOriginal) 
             fieldListOfKeyWordsOriginal=getKeyWordsPairListFromDataFrame(df_tfidf_original[0:40])
             del df_tfidf_original
-
+            
+            df_tfidf_translated=None
             df_tfidf_translated=getCompleteListOfKeyWords(lsContentTranslated) 
             fieldListOfKeyWordsTranslated=getKeyWordsPairListFromDataFrame(df_tfidf_translated[0:40])
             del df_tfidf_translated
@@ -294,10 +296,12 @@ def readFromDailyFX():
                 continue  
              
             #START OF TF-IDF - keyword process
+            df_tfidf_original=None
             df_tfidf_original=getCompleteListOfKeyWords(lsContentOriginal) 
             fieldListOfKeyWordsOriginal=getKeyWordsPairListFromDataFrame(df_tfidf_original[0:40])
             del df_tfidf_original
 
+            df_tfidf_translated=None
             df_tfidf_translated=getCompleteListOfKeyWords(lsContentTranslated) 
             fieldListOfKeyWordsTranslated=getKeyWordsPairListFromDataFrame(df_tfidf_translated[0:40])
             del df_tfidf_translated
@@ -311,6 +315,7 @@ def readFromDailyFX():
         
     BROWSER.quit()
 
+#Listo
 def readFromInvestopedia(option):
     returnChromeSettings()
     time.sleep(4)
@@ -349,15 +354,19 @@ def readFromInvestopedia(option):
     fieldUrl=hrefLink
     BROWSER.execute_script('window.open("'+hrefLink+'")','_blank')
     res=None
+   
+   
     res=secondWindowMechanism(lsContentOriginal,lsContentTranslated,'/html/body/main/div[2]/article/div[2]/div[1]','es')
     if not res:
         print(f'New already in database. App: {appName}')
     else:
         #START OF TF-IDF - keyword process
+        df_tfidf_original=None
         df_tfidf_original=getCompleteListOfKeyWords(lsContentOriginal) 
         fieldListOfKeyWordsOriginal=getKeyWordsPairListFromDataFrame(df_tfidf_original[0:40])
         del df_tfidf_original
-
+        
+        df_tfidf_translated=None
         df_tfidf_translated=getCompleteListOfKeyWords(lsContentTranslated) 
         fieldListOfKeyWordsTranslated=getKeyWordsPairListFromDataFrame(df_tfidf_translated[0:40])
         del df_tfidf_translated
@@ -396,12 +405,15 @@ def readFromInvestopedia(option):
                 print(f'New already in database. App: {appName}')
             else:
                 #START OF TF-IDF - keyword process
-    
+                df_tfidf_original=None
                 df_tfidf_original=getCompleteListOfKeyWords(lsContentOriginal) 
                 fieldListOfKeyWordsOriginal=getKeyWordsPairListFromDataFrame(df_tfidf_original[0:40])
-
+                del df_tfidf_original
+                
+                df_tfidf_translated=None
                 df_tfidf_translated=getCompleteListOfKeyWords(lsContentTranslated) 
                 fieldListOfKeyWordsTranslated=getKeyWordsPairListFromDataFrame(df_tfidf_translated[0:40])
+                del df_tfidf_translated
 
                 #End of TF IDF - Keyword process
                 #Start of PostgreSQL New Insertion
@@ -436,12 +448,16 @@ def readFromInvestopedia(option):
                 print(f'New already in database. App: {appName}')
             else:
                 #START OF TF-IDF - keyword process
-    
+                
+                df_tfidf_original=None
                 df_tfidf_original=getCompleteListOfKeyWords(lsContentOriginal) 
                 fieldListOfKeyWordsOriginal=getKeyWordsPairListFromDataFrame(df_tfidf_original[0:40])
-
+                del df_tfidf_original
+                
+                df_tfidf_translated=None
                 df_tfidf_translated=getCompleteListOfKeyWords(lsContentTranslated) 
                 fieldListOfKeyWordsTranslated=getKeyWordsPairListFromDataFrame(df_tfidf_translated[0:40])
+                del df_tfidf_translated
 
                 #End of TF IDF - Keyword process
                 #Start of PostgreSQL New Insertion
@@ -459,27 +475,118 @@ def readFromCryptonews():
     if btnLater:
         btnLater.click()
     BROWSER.switch_to.default_content()
+    global fieldTimeStamp,fieldBase64NewContent,fieldCommodity,fieldListOfKeyWordsOriginal
+    global fieldListOfKeyWordsTranslated,fieldTitle,fieldUrl,fieldSourceSite,appName  
+    #Start - PostgreSQL fields
+    fieldBase64NewContent=None
+    fieldCommodity=None
+    fieldListOfKeyWordsOriginal=None
+    fieldListOfKeyWordsTranslated=None
+    fieldTitle=None
+    fieldUrl=None
+    fieldSourceSite=None
+    fieldTimeStamp=None
+    appName=None
+    #End -  PostgreSQL Fields  
+    appName='Cryptonews'
+    fieldSourceSite=appName
     #First Section of News
     lsFirstSection=devuelveListaElementos('/html/body/div[2]/section[1]/div/div')
     for objNew in lsFirstSection:
-        lsContent=list()
+        lsContentOriginal=list()
         lsContentTranslated=list()
+        idx=lsFirstSection.index(objNew)
+        #Get time
+        txtDate=None
+        strDate=None
+        try:
+            txtDate=BROWSER.find_element_by_xpath(f'/html/body/div[2]/section[1]/div/div[{str(idx+1)}]/div/span/i/time')
+            strDate=txtDate.get_attribute('datetime')
+            today=None
+            today=datetime.now().strftime('%Y-%m-%d')
+            #If not todays' news, go to next new
+            if today != str(strDate).split('T')[0]:
+                continue
+            strDate=str(strDate[0:16]).replace('T',' ')
+        except:
+            strDate=datetime.now().strftime(formatTimeForPostgreSQL)
+
+        fieldTimeStamp=strDate    
         linkNew=None
         linkNew=objNew.find_element_by_xpath('.//a')
         hrefLink=linkNew.get_attribute('href')
+        fieldUrl=hrefLink
         BROWSER.execute_script('window.open("'+hrefLink+'")','_blank')
-        secondWindowMechanism(lsContent,lsContentTranslated,'/html/body/div[2]/article/div/div[2]','es')
+        res=None
+        res=secondWindowMechanism(lsContentOriginal,lsContentTranslated,'/html/body/div[2]/article/div/div[2]','es')
+        if not res:
+            print(f'New already in database. App: {appName}')
+        else:
+            #START OF TF-IDF - keyword process
+
+            df_tfidf_original=None
+            df_tfidf_original=getCompleteListOfKeyWords(lsContentOriginal) 
+            fieldListOfKeyWordsOriginal=getKeyWordsPairListFromDataFrame(df_tfidf_original[0:40])
+
+            df_tfidf_translated=None
+            df_tfidf_translated=getCompleteListOfKeyWords(lsContentTranslated) 
+            fieldListOfKeyWordsTranslated=getKeyWordsPairListFromDataFrame(df_tfidf_translated[0:40])
+
+            #End of TF IDF - Keyword process
+            #Start of PostgreSQL New Insertion
+            insertNewInTable(fieldTitle,lsContentOriginal[0],lsContentTranslated[0],fieldBase64NewContent,fieldTimeStamp,fieldCommodity,fieldListOfKeyWordsOriginal,fieldListOfKeyWordsTranslated,fieldUrl,fieldSourceSite,appName)  
+            #End of PostgreSQL New Insertion
         
 
     #Second Section of News
     lsSecondSection=devuelveListaElementos('/html/body/div[2]/section[2]/div[1]/div')
     for objNew in lsSecondSection:
-        lsContent=list()
+        lsContentOriginal=list()
+        lsContentTranslated=list()
+        idx=lsFirstSection.index(objNew)
+        #Get time
+        txtDate=None
+        strDate=None
+        try:
+            txtDate=BROWSER.find_element_by_xpath(f'/html/body/div[2]/section[1]/div/div[{str(idx+1)}]/div/span/i/time')
+            strDate=txtDate.get_attribute('datetime')
+            today=None
+            today=datetime.now().strftime('%Y-%m-%d')
+            #If not todays' news, go to next new
+            if today != str(strDate).split('T')[0]:
+                continue
+            strDate=str(strDate[0:16]).replace('T',' ')
+        except:
+            strDate=datetime.now().strftime(formatTimeForPostgreSQL)
+
+        fieldTimeStamp=strDate    
         linkNew=None
         linkNew=objNew.find_element_by_xpath('.//a')
         hrefLink=linkNew.get_attribute('href')
+        fieldUrl=hrefLink
         BROWSER.execute_script('window.open("'+hrefLink+'")','_blank')
-        secondWindowMechanism(lsContent,'/html/body/div[2]/article/div/div[2]','es')    
+        res=None
+        res=secondWindowMechanism(lsContentOriginal,lsContentTranslated,'/html/body/div[2]/article/div/div[2]','es')
+        if not res:
+            print(f'New already in database. App: {appName}')
+        else:
+            #START OF TF-IDF - keyword process
+
+            df_tfidf_original=None
+            df_tfidf_original=getCompleteListOfKeyWords(lsContentOriginal) 
+            fieldListOfKeyWordsOriginal=getKeyWordsPairListFromDataFrame(df_tfidf_original[0:40])
+
+            df_tfidf_translated=None
+            df_tfidf_translated=getCompleteListOfKeyWords(lsContentTranslated) 
+            fieldListOfKeyWordsTranslated=getKeyWordsPairListFromDataFrame(df_tfidf_translated[0:40])
+
+            #End of TF IDF - Keyword process
+            #Start of PostgreSQL New Insertion
+            insertNewInTable(fieldTitle,lsContentOriginal[0],lsContentTranslated[0],fieldBase64NewContent,fieldTimeStamp,fieldCommodity,fieldListOfKeyWordsOriginal,fieldListOfKeyWordsTranslated,fieldUrl,fieldSourceSite,appName)  
+            #End of PostgreSQL New Insertion  
+
+    #End of all sections        
+    BROWSER.quit()        
 
 def readFromYahoo(option):
     returnChromeSettings()
@@ -614,7 +721,6 @@ def getCommodity(titleInLowerCase,dicToSearch):
             if commodityWord in titleInLowerCase:
                 return key
                    
-
 def getSourceAndTranslatedText(sourceText,tgtLang):
     #getSourceAndTranslatedText returns both (original and translated text) clean.
     global fieldBase64NewContent
@@ -706,7 +812,7 @@ def secondWindowMechanism(lsContent,lsContentTranslated,xPathElementSecondWindow
         strTitle=None
         try:
             strContent=BROWSER.find_element_by_xpath(xPathElementSecondWindow)
-            strTitle=BROWSER.title
+            strTitle=getTitleClean(BROWSER.title)
             fieldTitle=strTitle
         except NameError as error:
             bAd=True   
@@ -732,6 +838,12 @@ def secondWindowMechanism(lsContent,lsContentTranslated,xPathElementSecondWindow
             BROWSER.switch_to.window(first_window)
 
             return res
+
+def getTitleClean(strTitle):
+    lsChar=['"',"'"]
+    for char in lsChar:
+        strTitle=strTitle.replace(char,' ')
+    return strTitle
 
 def getCompleteListOfKeyWords(lsContent):
     #This implementation of code is based on : 
