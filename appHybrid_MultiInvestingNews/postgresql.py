@@ -26,6 +26,8 @@ def executeNonQuery(query):
     conn.commit()
     cursor.close()
     conn.close()
+
+    return True
    
 
 

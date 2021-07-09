@@ -46,8 +46,8 @@ Solution:
 
 Changes:
 
--Diccionario para commodities, para categorizar.
--Encuentre o no commodity, agregue la noticia
+-Diccionario para commodities, para categorizar. (Done)
+-Encuentre o no commodity, agregue la noticia. (Done)
     
 
 

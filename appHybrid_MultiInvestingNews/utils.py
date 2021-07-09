@@ -19,7 +19,10 @@ from selenium.webdriver.common.keys import Keys
 import base64
 from datetime import datetime, timedelta
 import postgresql as bd
+
+
 BROWSER=''
+formatTimeForPostgreSQL='%Y-%m-%d %H:%M'
 objControl=cInternalControl()
 nltk.download('stopwords')
 #Start of Common items
@@ -63,12 +66,12 @@ dictCommodity={
 
 
 #Start PostgreSQL fields for all news
-fieldCommodity=None   
+fieldCommodity=None  
 fieldBase64NewContent=None 
 fieldTimeStamp=None
 fieldListOfKeyWordsOriginal=None
 fieldListOfKeyWordsTranslated=None
-fieldTitle='No title'
+fieldTitle=None
 fieldUrl=None
 fieldSourceSite=None 
 appName=None
@@ -100,6 +103,8 @@ def readFromInvesting():
             #Check Source
             lsContentOriginal=list()
             lsContentTranslated=list()
+            lsKeyWordsOriginal=list()
+            lsKeyWordsTranslated=list()
             strTitle=None
             strSource=None
             txtDateFilter=None
@@ -107,21 +112,18 @@ def readFromInvesting():
             txtSource=None
             linkArticle=None
             strDate=None
-            lsKeyWordsOriginal=list()
-            lsKeyWordsTranslated=list()
             #Start - PostgreSQL fields
             global fieldTimeStamp,fieldBase64NewContent,fieldCommodity,fieldListOfKeyWordsOriginal
             global fieldListOfKeyWordsTranslated,fieldTitle,fieldUrl,fieldSourceSite,appName
-            appName='Investing.com'
             fieldTimeStamp=None
             fieldBase64NewContent=None
             fieldCommodity=None
             fieldListOfKeyWordsOriginal=None
             fieldListOfKeyWordsTranslated=None
-            fieldTitle='No title'
+            fieldTitle=None
             fieldUrl=None
             fieldSourceSite=None
-            
+            appName='Investing.com'
             #End -  PostgreSQL Fields
             time.sleep(4)
             #For source: Those from "lsSource" list have "span", the rest have "div"
@@ -172,7 +174,7 @@ def readFromInvesting():
                 date_time_new=datetime.now() - timedelta(minutes=intAmountToSubstract)  
 
             # https://strftime.org/ : This format %Y-%m-%d %H:%M gets 24 hour based.
-            fieldTimeStamp = date_time_new.strftime("%Y-%m-%d %H:%M")   
+            fieldTimeStamp = date_time_new.strftime(formatTimeForPostgreSQL)   
               
             
             #End of field Time setting
@@ -255,11 +257,7 @@ def readFromInvesting():
             #End of TF IDF - Keyword process
     
             #Start of PostgreSQL New Insertion
-            strFields='(txtTitle,txtNew_content_Original,txtNew_content_Translated,txtBase64_contentOriginal,tspDateTime,commodity,lsKeywordsOriginal,lsKeyWordsTranslated,txturl,txtsitesource,appName)'
-            strValues=f"('{fieldTitle}','{lsContentOriginal[0]}','{lsContentTranslated[0]}','{fieldBase64NewContent}','{fieldTimeStamp}','{fieldCommodity}','{fieldListOfKeyWordsOriginal}','{fieldListOfKeyWordsTranslated}','{fieldUrl}','{fieldSourceSite}','{appName}')"
-            st=f"insert into tbNew {strFields} values {strValues} "
-            bd.executeNonQuery(st)
-            print('----------------New inserted succesfully!----------------')  
+            insertNewInTable(fieldTitle,lsContentOriginal[0],lsContentTranslated[0],fieldBase64NewContent,fieldTimeStamp,fieldCommodity,fieldListOfKeyWordsOriginal,fieldListOfKeyWordsTranslated,fieldUrl,fieldSourceSite,appName)  
             #End of PostgreSQL New Insertion
             
             print(f'----------End of Page {str(page)} New {str(idx+1)}-------------')
@@ -269,19 +267,9 @@ def readFromInvesting():
 
         #For Loop : Pages    
         print(f'-End of page {str(page)}-')
-        
-        #At the end of the page, decide where to set the stop and generate the complete TF-IDF
-        if page==4:
-            print(f'Generating complete TF-IDF until page {str(page)}')
-            BROWSER.quit()
-            #START OF TF-IDF AND WORD CLOUD PROCESS
-            getCompleteListOfKeyWords(lsContentCorpus)
-            #End of TF IDF - Keyword process
-            print('All td idf done...')
-            os.sys.exit(0) 
-
+    #When all the pages in the loop are done    
+    BROWSER.quit()
           
-
 def readFromDailyFX():
     returnChromeSettings()
     for page in range(1,4):
@@ -291,11 +279,93 @@ def readFromDailyFX():
         lsNews=devuelveListaElementos('/html/body/div[5]/div/div[3]/div/div[1]/div[1]/a')
         #Get the news
         for objNew in lsNews:
-            lsContent=list()
+            #Start - PostgreSQL fields
+            global fieldTimeStamp,fieldBase64NewContent,fieldCommodity,fieldListOfKeyWordsOriginal
+            global fieldListOfKeyWordsTranslated,fieldTitle,fieldUrl,fieldSourceSite,appName
+            fieldTimeStamp=None
+            fieldBase64NewContent=None
+            fieldCommodity=None
+            fieldListOfKeyWordsOriginal=None
+            fieldListOfKeyWordsTranslated=None
+            fieldTitle=None
+            fieldUrl=None
+            fieldSourceSite=None
+            appName='DailyFX'
+            fieldSourceSite=appName
+            #End -  PostgreSQL Fields
+            #Start local variables
+            lsContentOriginal=list()
             lsContentTranslated=list()
+            lsKeyWordsOriginal=list()
+            lsKeyWordsTranslated=list()
+            txtTitle=None
+            txtDateTime=None
+            #End local variables
+
+            idx=lsNews.index(objNew)
+            #Filter by todays' news
+            txtDateTime=BROWSER.find_element_by_xpath(f'/html/body/div[5]/div/div[3]/div/div[1]/div[1]/a[{str(idx+1)}]/div/div[1]/span')
+            txtDateTime=txtDateTime.get_attribute('data-time')
+            today=None
+            today=datetime.now().strftime('%Y-%m-%d')
+            #If not todays' news, go to next new
+            if today != str(txtDateTime).split('T')[0]:
+                continue
+            #If code reaches this line, therefore is a today's new, keep going with process
+            fieldTimeStamp=str(txtDateTime[0:16]).replace('T',' ')
+            #Get Title & Commodity     
+            txtTitle=BROWSER.find_element_by_xpath(f'/html/body/div[5]/div/div[3]/div/div[1]/div[1]/a[{str(idx+1)}]/div/span')
+            fieldTitle=txtTitle.text
+            strTitleLower=fieldTitle.lower()
+            for key in dictCommodity:
+                if fieldCommodity is not None:
+                    break
+                lsCurrent=None
+                lsCurrent=dictCommodity[key]
+                for commodityWord in lsCurrent:
+                    if commodityWord in strTitleLower:
+                        fieldCommodity=key
+                        break    
+            
+
+            #Get Commodity
             hrefLink=objNew.get_attribute('href')
+            fieldUrl=hrefLink
             BROWSER.execute_script('window.open("'+hrefLink+'")','_blank')
-            secondWindowMechanism(lsContent,lsContentTranslated,'/html/body/div[5]/div/main/article/section/div/div[1]/div[1]/div','es')        
+            res=secondWindowMechanism(lsContentOriginal,lsContentTranslated,'/html/body/div[5]/div/main/article/section/div/div[1]/div[1]/div','es')  
+
+            if not res:
+                print(f'----------End of Page {str(page)} New {str(idx+1)} ALREADY IN TABLE-------------')
+                continue  
+            
+            
+            #START OF TF-IDF - keyword process
+            """
+            In this dataframe, you can get the name and its weight by iterating each row:
+                Feature/word = row[1].name
+                 Weight   = row[1].values[0]
+            """
+            df_tfidf_original=getCompleteListOfKeyWords(lsContentOriginal) 
+            for row in df_tfidf_original[0:40].iterrows():
+                strLine=None
+                strLine=f'{str(row[1].name)},{str(row[1].values[0])}'
+                lsKeyWordsOriginal.append(strLine)
+            del df_tfidf_original
+            fieldListOfKeyWordsOriginal=';'.join(lsKeyWordsOriginal)
+
+            df_tfidf_translated=getCompleteListOfKeyWords(lsContentTranslated) 
+            for row in df_tfidf_translated[0:40].iterrows():
+                strLine=None
+                strLine=f'{str(row[1].name)},{str(row[1].values[0])}'
+                lsKeyWordsTranslated.append(strLine)
+            del df_tfidf_translated
+            fieldListOfKeyWordsTranslated=';'.join(lsKeyWordsTranslated)
+
+            #End of TF IDF - Keyword process
+            #Start of PostgreSQL New Insertion
+            insertNewInTable(fieldTitle,lsContentOriginal[0],lsContentTranslated[0],fieldBase64NewContent,fieldTimeStamp,fieldCommodity,fieldListOfKeyWordsOriginal,fieldListOfKeyWordsTranslated,fieldUrl,fieldSourceSite,appName)  
+            #End of PostgreSQL New Insertion
+                
                  
         print(f'End of page {str(page)}')  
         
@@ -459,6 +529,20 @@ def readFromElFinanciero():
 
 #SECTION - START OF COMMON METHODS
 
+def insertNewInTable(fieldTitle,originalContent,translatedContent,fieldBase64NewContent,fieldTimeStamp,fieldCommodity,fieldListOfKeyWordsOriginal,fieldListOfKeyWordsTranslated,fieldUrl,fieldSourceSite,appName):
+    strFields=None
+    strValues=None
+    strFields='(txtTitle,txtNew_content_Original,txtNew_content_Translated,txtBase64_contentOriginal,tspDateTime,commodity,lsKeywordsOriginal,lsKeyWordsTranslated,txturl,txtsitesource,appName)'
+    strValues=f"('{fieldTitle}','{originalContent}','{translatedContent}','{fieldBase64NewContent}','{fieldTimeStamp}','{fieldCommodity}','{fieldListOfKeyWordsOriginal}','{fieldListOfKeyWordsTranslated}','{fieldUrl}','{fieldSourceSite}','{appName}')"
+    st=f"insert into tbNew {strFields} values {strValues} "
+    res=False
+    res=bd.executeNonQuery(st)
+    if res:
+        print('----------------New inserted succesfully!----------------')
+    else:
+        print('---------------New content was not inserted...please check----------')      
+
+
 def getSourceAndTranslatedText(sourceText,tgtLang):
     #getSourceAndTranslatedText returns both (original and translated text) clean.
     global fieldBase64NewContent
@@ -520,8 +604,8 @@ def returnChromeSettings():
     options.add_argument("--no-sandbox")
     
     prefs = {
-      "translate_whitelists": {"es":"en"},
-      "translate":{"enabled":"true"}
+      #"translate_whitelists": {"es":"en"},
+      #"translate":{"enabled":"true"}
      }
     
     
