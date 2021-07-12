@@ -18,7 +18,7 @@ from nltk import tokenize
 from deep_translator import GoogleTranslator
 from selenium.webdriver.common.keys import Keys
 import base64
-from datetime import datetime, timedelta
+from datetime import date, datetime, timedelta
 import postgresql as bd
 
 
@@ -592,6 +592,7 @@ def readFromCryptonews():
     #End of all sections        
     BROWSER.quit()        
 
+#Listo
 def readFromYahoo(option):
     returnChromeSettings()
     time.sleep(4)
@@ -708,23 +709,112 @@ def readFromYahoo(option):
 def readFromFXNews():
     returnChromeSettings()
     BROWSER.get(dicWebSite['fxstreet'])
-    print('Waiting banner to disappear...10 secs')
-    time.sleep(10)      
-    #Main section of News
-    lsMainSection=devuelveListaElementos('/html/body/div[4]/div[2]/div/div/div/main/div/div[2]/div[1]/div/div[2]/div/div[2]/section/div/div/div/main/div/div')
-    for objNew in lsMainSection:
-        idx=lsMainSection.index(objNew)
-        lsContent=list()
-        lsContentTranslated=list()
-        hrefLink=None
-        linkNew=objNew.find_element_by_xpath('.//a')  
-        hrefLink=linkNew.get_attribute('href')
-        BROWSER.execute_script('window.open("'+hrefLink+'")','_blank')
-        secondWindowMechanism(lsContent,lsContentTranslated,'/html/body/div[4]/div[2]/div/div/main/div/div[3]/div[1]/div/section/article/div[1]/div','es')
-        print(f'Ready: {str(idx+1)} ')
+    lsMonth=['jan','feb','mar','apr','may','jun','jul','aug','sep','oct','nov','dic']
+    for page in range(1,7):
+        #7h page is enough to get the news of TODAY
+        secs=15
+        print(f'Waiting banner to disappear...{str(secs)} secs')
+        time.sleep(secs)      
+        global fieldTimeStamp,fieldBase64NewContent,fieldCommodity,fieldListOfKeyWordsOriginal
+        global fieldListOfKeyWordsTranslated,fieldTitle,fieldUrl,fieldSourceSite,appName  
+        #Start - PostgreSQL fields
+        fieldBase64NewContent=None
+        fieldCommodity=None
+        fieldListOfKeyWordsOriginal=None
+        fieldListOfKeyWordsTranslated=None
+        fieldTitle=None
+        fieldUrl=None
+        fieldSourceSite=None
+        fieldTimeStamp=None
+        appName=None
+        #End -  PostgreSQL Fields  
+        appName='FXNews'
+        fieldSourceSite=appName
+        #Main section of News
+        lsMainSection=devuelveListaElementos('/html/body/div[4]/div[2]/div/div/div/main/div/div[2]/div[1]/div/div[2]/div/div[2]/section/div/div/div/main/div/div')
+        for objNew in lsMainSection:
+            idx=lsMainSection.index(objNew)
+            lsContentOriginal=list()
+            lsContentTranslated=list()
+            hrefLink=None
+            #Get date
+            txtDate=None
+            strDate=None
+            bFailTimeLink=False
+            try:
+                txtDate=BROWSER.find_element_by_xpath(f'/html/body/div[4]/div[2]/div/div/div/main/div/div[2]/div[1]/div/div[2]/div/div[2]/section/div/div/div/main/div/div[{str(idx+1)}]/div/div/article/div[2]/address/time')  
+                if txtDate:
+                    strDate=txtDate.text  
+            except:    
+                #Set the current system time
+                strDate=datetime.now().strftime(formatTimeForPostgreSQL)
+                bFailTimeLink=True
 
-    linkNext=devuelveElemento('/html/body/div[4]/div[2]/div/div/div/main/div/div[2]/div[1]/div/div[2]/div/div[2]/section/div/div/div/section[2]/div/ul/li[9]/a') 
-    BROWSER.execute_script('arguments[0].click();',linkNext)  
+            #Cases for setting time and date
+            try:
+                if not bFailTimeLink:
+                    measureTime=None
+                    intQuantity=None
+                    #Case: When 'ago' in in the sentence
+                    if 'ago' in strDate:
+                        measureTime=strDate.split(' ')[1] 
+                        intQuantity=int(strDate.split(' ')[0])
+                        date_time_new=None
+                        if 'minute' in measureTime:
+                            date_time_new=datetime.now() - timedelta(minutes=intQuantity)
+                        else:
+                            date_time_new=datetime.now() - timedelta(hours=intQuantity)
+
+                        strDate=date_time_new 
+                    else:
+                        dateOfNew=None
+                        monthOfNew_Number=None
+                        dateOfNew=str(strDate.split(',')[0]).lower()
+                        monthOfNew=dateOfNew.split(' ')[0]
+                        monthOfNew_Number=lsMonth.index(monthOfNew)+1
+                        if date.today().month==monthOfNew_Number:
+                            dayOfNew=int(dateOfNew.split(' ')[1])
+                            if date.today().day==dayOfNew:
+                                strDate=datetime.now().strftime(formatTimeForPostgreSQL)
+                            else:
+                                #If not current date, continue with next new
+                                continue    
+                        else:
+                            #If not current month, continue with next new
+                            continue 
+            except:
+                #If whatever fails on the process, continue with next new
+                continue
+
+
+            fieldTimeStamp=strDate    
+            linkNew=objNew.find_element_by_xpath('.//a')  
+            hrefLink=linkNew.get_attribute('href')
+            fieldUrl=hrefLink
+            BROWSER.execute_script('window.open("'+hrefLink+'")','_blank')
+            res=secondWindowMechanism(lsContentOriginal,lsContentTranslated,'/html/body/div[4]/div[2]/div/div/main/div/div[3]/div[1]/div/section/article/div[1]/div','es')
+            if not res:
+                print(f'New already in database. App: {appName}')
+            else:
+                #START OF TF-IDF - keyword process
+
+                df_tfidf_original=None
+                df_tfidf_original=getCompleteListOfKeyWords(lsContentOriginal) 
+                fieldListOfKeyWordsOriginal=getKeyWordsPairListFromDataFrame(df_tfidf_original[0:40])
+                del df_tfidf_original
+
+                df_tfidf_translated=None
+                df_tfidf_translated=getCompleteListOfKeyWords(lsContentTranslated) 
+                fieldListOfKeyWordsTranslated=getKeyWordsPairListFromDataFrame(df_tfidf_translated[0:40])
+                del df_tfidf_translated
+
+                #End of TF IDF - Keyword process
+                #Start of PostgreSQL New Insertion
+                insertNewInTable(fieldTitle,lsContentOriginal[0],lsContentTranslated[0],fieldBase64NewContent,fieldTimeStamp,fieldCommodity,fieldListOfKeyWordsOriginal,fieldListOfKeyWordsTranslated,fieldUrl,fieldSourceSite,appName)  
+                #End of PostgreSQL New Insertion  
+            
+        linkNext=devuelveElemento('/html/body/div[4]/div[2]/div/div/div/main/div/div[2]/div[1]/div/div[2]/div/div[2]/section/div/div/div/section[2]/div/ul/li[9]/a') 
+        BROWSER.execute_script('arguments[0].click();',linkNext)  
         
 def readFromElFinanciero():
     returnChromeSettings()
