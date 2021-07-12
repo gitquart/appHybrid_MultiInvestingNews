@@ -3,7 +3,7 @@ import utils as tool
 
 def main():
     try:
-        mainOption='cryptonews'.lower()
+        mainOption='Yahoo'.lower()
         print(f'-------Reading from {mainOption}-------')
         if mainOption == 'investing':
             tool.readFromInvesting()
@@ -17,7 +17,7 @@ def main():
             tool.readFromCryptonews()
         if mainOption == 'yahoo':
             #Options : market, new
-            tool.readFromYahoo('market')
+            tool.readFromYahoo('new')
         if mainOption == 'fxnews':
             tool.readFromFXNews() 
         if mainOption == 'financiero':

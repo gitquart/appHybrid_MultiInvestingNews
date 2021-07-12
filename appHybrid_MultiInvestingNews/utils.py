@@ -151,7 +151,6 @@ def readFromInvesting():
                 fieldSourceSite= strSource
                 print(f'Source :{strSource}')
                 
-
             linkArticle=devuelveElemento(f'/html/body/div[5]/section/div[4]/article[{str(idx+1)}]/div[1]/a')
             fieldUrl=linkArticle.get_attribute('href')
             BROWSER.execute_script("arguments[0].click();",linkArticle)
@@ -528,10 +527,12 @@ def readFromCryptonews():
             df_tfidf_original=None
             df_tfidf_original=getCompleteListOfKeyWords(lsContentOriginal) 
             fieldListOfKeyWordsOriginal=getKeyWordsPairListFromDataFrame(df_tfidf_original[0:40])
+            del df_tfidf_original
 
             df_tfidf_translated=None
             df_tfidf_translated=getCompleteListOfKeyWords(lsContentTranslated) 
             fieldListOfKeyWordsTranslated=getKeyWordsPairListFromDataFrame(df_tfidf_translated[0:40])
+            del df_tfidf_translated
 
             #End of TF IDF - Keyword process
             #Start of PostgreSQL New Insertion
@@ -576,10 +577,12 @@ def readFromCryptonews():
             df_tfidf_original=None
             df_tfidf_original=getCompleteListOfKeyWords(lsContentOriginal) 
             fieldListOfKeyWordsOriginal=getKeyWordsPairListFromDataFrame(df_tfidf_original[0:40])
+            del df_tfidf_original
 
             df_tfidf_translated=None
             df_tfidf_translated=getCompleteListOfKeyWords(lsContentTranslated) 
             fieldListOfKeyWordsTranslated=getKeyWordsPairListFromDataFrame(df_tfidf_translated[0:40])
+            del df_tfidf_translated
 
             #End of TF IDF - Keyword process
             #Start of PostgreSQL New Insertion
@@ -593,53 +596,115 @@ def readFromYahoo(option):
     returnChromeSettings()
     time.sleep(4)
     strPathMainSection=None
-    strLink=None
+    strWebSite=None
+    lsTime=list()
+    lsLink=list()
     if option=='market':
-        BROWSER.get(dicWebSite['yahoofinance_market'])
+        strWebSite=dicWebSite['yahoofinance_market']
         strPathMainSection='/html/body/div[1]/div/div/div[1]/div/div[3]/div[1]/div/div[3]/div/div/div/ul/li'
-        strLink='/html/body/div[1]/div/div/div[1]/div/div[3]/div[1]/div/div[3]/div/div/div/ul/li[idx]/div/div/div[2]/h3/a'
+        lsLink.append('/html/body/div[1]/div/div/div[1]/div/div[3]/div[1]/div/div[3]/div/div/div/ul/li[idx]/div/div/div[1]/h3/a')
+        lsLink.append('/html/body/div[1]/div/div/div[1]/div/div[3]/div[1]/div/div[3]/div/div/div/ul/li[idx]/div/div/div[2]/h3/a')
+        lsTime.append('/html/body/div[1]/div/div/div[1]/div/div[3]/div[1]/div/div[3]/div/div/div/ul/li[idx]/div/div/div[1]/div[2]/span[2]')
+        lsTime.append('/html/body/div[1]/div/div/div[1]/div/div[3]/div[1]/div/div[3]/div/div/div/ul/li[idx]/div/div/div[2]/div[2]/span[2]')
     else:
-        BROWSER.get(dicWebSite['yahoofinance_news']) 
+        strWebSite=dicWebSite['yahoofinance_news'] 
         strPathMainSection='/html/body/div[1]/div/div/div[1]/div/div[3]/div[1]/div/div[2]/div/div/div/ul/li'
-        strLink='/html/body/div[1]/div/div/div[1]/div/div[3]/div[1]/div/div[2]/div/div/div/ul/li[idx]/div/div/div[2]/h3/a'
-        strLink2='/html/body/div[1]/div/div/div[1]/div/div[3]/div[1]/div/div[2]/div/div/div/ul/li[idx]/div/div/div[1]/h3/a'
+        lsLink.append('/html/body/div[1]/div/div/div[1]/div/div[3]/div[1]/div/div[2]/div/div/div/ul/li[idx]/div/div/div[2]/h3/a')
+        lsLink.append('/html/body/div[1]/div/div/div[1]/div/div[3]/div[1]/div/div[2]/div/div/div/ul/li[idx]/div/div/div[1]/h3/a')
+        lsTime.append('/html/body/div[1]/div/div/div[1]/div/div[3]/div[1]/div/div[2]/div/div/div/ul/li[idx]/div/div/div[1]/div[2]/span[2]')
+        lsTime.append('/html/body/div[1]/div/div/div[1]/div/div[3]/div[1]/div/div[2]/div/div/div/ul/li[idx]/div/div/div[2]/div[2]/span[2]')
         
-
+    BROWSER.get(strWebSite)
     #Scroll down infinite loading page
     for x in range(1,200):
         BROWSER.find_element_by_tag_name('body').send_keys(Keys.PAGE_DOWN)
     #Main section of news
-    time.sleep(5)                                      
+    time.sleep(5)  
+    global fieldTimeStamp,fieldBase64NewContent,fieldCommodity,fieldListOfKeyWordsOriginal
+    global fieldListOfKeyWordsTranslated,fieldTitle,fieldUrl,fieldSourceSite,appName  
+    #Start - PostgreSQL fields
+    fieldBase64NewContent=None
+    fieldCommodity=None
+    fieldListOfKeyWordsOriginal=None
+    fieldListOfKeyWordsTranslated=None
+    fieldTitle=None
+    fieldUrl=None
+    fieldSourceSite=None
+    fieldTimeStamp=None
+    appName=None
+    #End -  PostgreSQL Fields  
+    appName=f'Yahoo {option}'
+    fieldSourceSite=appName                                    
     lsMainSection=devuelveListaElementos(strPathMainSection)
     for objNew in lsMainSection:
-        lsContent=list()
+        strLinkTime=None
+        lsContentOriginal=list()
         lsContentTranslated=list()
         linkNew=None
+        linkTime=None
         idx= lsMainSection.index(objNew)
-        #Cases: Market and New
-        strLink=strLink.replace('idx',str(idx+1))     
-        if option=='market':                  
+        #Try -catch for  the time
+        for strTime in lsTime:
             try:
-                linkNew=BROWSER.find_element_by_xpath(strLink)
-            except:
-                print(f'I AM AN AD: {str(idx+1)} ')
+                linkTime=BROWSER.find_element_by_xpath(str(strTime).replace('idx',str(idx+1)))
+                if linkTime:
+                    strLinkTime=linkTime.text  
+                    break  
+            except:    
                 continue
-        else:
-            strLink2=strLink2.replace('idx',str(idx+1))
-            try:
-                linkNew=BROWSER.find_element_by_xpath(strLink)
-            except:
-                try:
-                    linkNew=BROWSER.find_element_by_xpath(strLink2)
-                except:    
-                    print(f'I AM AN AD: {str(idx+1)} ')
-                    continue
-    
-        hrefLink=linkNew.get_attribute('href')
-        BROWSER.execute_script('window.open("'+hrefLink+'")','_blank')
-        secondWindowMechanism(lsContent,lsContentTranslated,'html/body','es')
-        print(f'FIRST SECTION Ready: {str(idx+1)} ')        
 
+        #Try -catch for the link  
+        for strLink in lsLink:             
+            try:
+                linkNew=BROWSER.find_element_by_xpath(str(strLink).replace('idx',str(idx+1)))
+            except:
+                continue
+
+        if (linkTime is None) and (linkNew is None):
+            print('This is high probable and ADVERTISEMENT...')
+            continue        
+
+        #Check if it's today new, if not continue with the next new...
+        if 'ago' not in strLinkTime:
+            continue
+
+        strMeasure=None
+        strMeasure=strLinkTime.split(' ')[1]
+        intQuantity=None
+        intQuantity=int(strLinkTime.split(' ')[0])
+        date_time_new=None
+        if 'minute' in strMeasure:
+            #Case: minutes
+            date_time_new=datetime.now() - timedelta(minutes=intQuantity)
+        else:
+            #Case: hours  
+            date_time_new=datetime.now() - timedelta(hours=intQuantity)  
+
+        fieldTimeStamp=date_time_new.strftime(formatTimeForPostgreSQL)    
+        hrefLink=linkNew.get_attribute('href')
+        fieldUrl=hrefLink
+        BROWSER.execute_script('window.open("'+hrefLink+'")','_blank')
+        res=secondWindowMechanism(lsContentOriginal,lsContentTranslated,'html/body','es')
+        if not res:
+            print(f'New already in database. App: {appName}')
+        else:
+            #START OF TF-IDF - keyword process
+
+            df_tfidf_original=None
+            df_tfidf_original=getCompleteListOfKeyWords(lsContentOriginal) 
+            fieldListOfKeyWordsOriginal=getKeyWordsPairListFromDataFrame(df_tfidf_original[0:40])
+            del df_tfidf_original
+
+            df_tfidf_translated=None
+            df_tfidf_translated=getCompleteListOfKeyWords(lsContentTranslated) 
+            fieldListOfKeyWordsTranslated=getKeyWordsPairListFromDataFrame(df_tfidf_translated[0:40])
+            del df_tfidf_translated
+
+            #End of TF IDF - Keyword process
+            #Start of PostgreSQL New Insertion
+            insertNewInTable(fieldTitle,lsContentOriginal[0],lsContentTranslated[0],fieldBase64NewContent,fieldTimeStamp,fieldCommodity,fieldListOfKeyWordsOriginal,fieldListOfKeyWordsTranslated,fieldUrl,fieldSourceSite,appName)  
+            #End of PostgreSQL New Insertion
+                
 def readFromFXNews():
     returnChromeSettings()
     BROWSER.get(dicWebSite['fxstreet'])
