@@ -57,12 +57,11 @@ dicWebSite={
 
 dictCommodity={
 
-    'oil':['crude oil','oil','brent'],
-    'natural gas':['natural gas'],
-    'gold':['gold'],
-    'silver':['silver'],
-    'copper':['copper'],
-    'coffee':['coffee']
+    'oil':['crude oil','oil','brent','petróleo','wti','west texas intermediate','barril','opep'],
+    'gold':['gold','oro','metales preciosos','xau','wgc','comex'],
+    'silver':['silver','plata','metales preciosos','xag'],
+    'copper':['copper','cobre','metales industriales','hg'],
+    'coffee':['coffee','café','kc','arábica','ice/us']
 }
 
 

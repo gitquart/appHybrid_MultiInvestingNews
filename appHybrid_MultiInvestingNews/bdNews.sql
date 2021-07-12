@@ -45,5 +45,5 @@ CREATE TABLE tbNew (
 
 select * from tbNew;
 
-delete from tbnew where id=17;
-delete from tbnew where id=18;
+delete from tbnew where id=24;
+
