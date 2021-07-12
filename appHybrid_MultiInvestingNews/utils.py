@@ -84,7 +84,8 @@ appName=None
 lsSources=['Reuters','Investing.com','Bloomberg']
 #End of Investing.com items
 
-#LISTO       
+#R stands for READY
+#R      
 def readFromInvesting():
     returnChromeSettings()
     time.sleep(4)
@@ -244,7 +245,7 @@ def readFromInvesting():
         print(f'-End of page {str(page)}-')
     #When all the pages in the loop are done    
     BROWSER.quit()
-#LISTO      
+#R 
 def readFromDailyFX():
     returnChromeSettings()
     for page in range(1,4):
@@ -314,7 +315,7 @@ def readFromDailyFX():
         
     BROWSER.quit()
 
-#Listo
+#R
 def readFromInvestopedia(option):
     returnChromeSettings()
     time.sleep(4)
@@ -465,7 +466,7 @@ def readFromInvestopedia(option):
 
     BROWSER.quit()
 
-#Listo    
+#R    
 def readFromCryptonews():
     returnChromeSettings()
     BROWSER.get(dicWebSite['cryptonews'])
@@ -592,7 +593,7 @@ def readFromCryptonews():
     #End of all sections        
     BROWSER.quit()        
 
-#Listo
+#R
 def readFromYahoo(option):
     returnChromeSettings()
     time.sleep(4)
@@ -705,7 +706,8 @@ def readFromYahoo(option):
             #Start of PostgreSQL New Insertion
             insertNewInTable(fieldTitle,lsContentOriginal[0],lsContentTranslated[0],fieldBase64NewContent,fieldTimeStamp,fieldCommodity,fieldListOfKeyWordsOriginal,fieldListOfKeyWordsTranslated,fieldUrl,fieldSourceSite,appName)  
             #End of PostgreSQL New Insertion
-                
+
+#R              
 def readFromFXNews():
     returnChromeSettings()
     BROWSER.get(dicWebSite['fxstreet'])
