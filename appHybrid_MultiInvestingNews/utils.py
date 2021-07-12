@@ -784,6 +784,7 @@ def readFromFXNews():
                             continue 
             except:
                 #If whatever fails on the process, continue with next new
+                #I decide to "continue" because it exists a high risk of reading past news
                 continue
 
 
