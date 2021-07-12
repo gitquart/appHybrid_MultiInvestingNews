@@ -82,6 +82,7 @@ appName=None
 
 #Start of Investing.com items
 lsSources=['Reuters','Investing.com','Bloomberg']
+lsChar=['"',"'"]
 #End of Investing.com items
 
 #R stands for READY
@@ -818,27 +819,74 @@ def readFromFXNews():
             
         linkNext=devuelveElemento('/html/body/div[4]/div[2]/div/div/div/main/div/div[2]/div[1]/div/div[2]/div/div[2]/section/div/div/div/section[2]/div/ul/li[9]/a') 
         BROWSER.execute_script('arguments[0].click();',linkNext)  
-        
+
+#R       
 def readFromElFinanciero():
     returnChromeSettings()
     BROWSER.get(dicWebSite['financiero'])
     strDivNews='list-container layout-section'
+    global fieldTimeStamp,fieldBase64NewContent,fieldCommodity,fieldListOfKeyWordsOriginal
+    global fieldListOfKeyWordsTranslated,fieldTitle,fieldUrl,fieldSourceSite,appName  
+    #Start - PostgreSQL fields
+    fieldBase64NewContent=None
+    fieldCommodity=None
+    fieldListOfKeyWordsOriginal=None
+    fieldListOfKeyWordsTranslated=None
+    fieldTitle=None
+    fieldUrl=None
+    fieldSourceSite=None
+    fieldTimeStamp=None
+    appName=None
+    #End -  PostgreSQL Fields  
+    appName='El financiero'
+    fieldSourceSite=appName
     lsNewSection=devuelveListaElementos('/html/body/div[1]/section/div/div[2]/aside/div')
     for div in lsNewSection:
         className=div.get_attribute('class')
         if className == strDivNews:
             lsArticle=div.find_elements_by_xpath('.//article') 
             for article in lsArticle:  
-                idx=lsArticle.index(article)
-                lsContent=list()
+                lsContentOriginal=list()
                 lsContentTranslated=list()
                 hrefLink=None
                 linkNew=article.find_element_by_xpath('.//a')  
                 hrefLink=linkNew.get_attribute('href')
+                #Get date
+                txtDate=None
+                txtDate=hrefLink
+                txtDate=txtDate.split('www.elfinanciero.com.mx/mercados')[1]
+                txtDate=txtDate.split('/')
+                today=date.today().strftime('%Y/%m/%d')
+                #Date position [1]:Year, [2]:Month, [3]:day
+                new_date=F'{txtDate[1]}/{txtDate[2]}/{txtDate[3]}'
+                if today != new_date:
+                    continue
+
+                fieldTimeStamp=datetime.now().strftime(formatTimeForPostgreSQL)
+                fieldUrl=hrefLink
                 BROWSER.execute_script('window.open("'+hrefLink+'")','_blank')
-                secondWindowMechanism(lsContent,lsContentTranslated,'/html/body/div[1]/section/div/div[2]/div/article','en')
-                print(f'Ready: {str(idx+1)} ')
-    print('Both sections')            
+                res=secondWindowMechanism(lsContentOriginal,lsContentTranslated,'/html/body/div[1]/section/div/div[2]/div/article','en')
+                if not res:
+                    print(f'New already in database. App: {appName}')
+                else:
+                    #START OF TF-IDF - keyword process
+
+                    df_tfidf_original=None
+                    df_tfidf_original=getCompleteListOfKeyWords(lsContentOriginal) 
+                    fieldListOfKeyWordsOriginal=getKeyWordsPairListFromDataFrame(df_tfidf_original[0:40])
+                    del df_tfidf_original
+
+                    df_tfidf_translated=None
+                    df_tfidf_translated=getCompleteListOfKeyWords(lsContentTranslated) 
+                    fieldListOfKeyWordsTranslated=getKeyWordsPairListFromDataFrame(df_tfidf_translated[0:40])
+                    del df_tfidf_translated
+
+                    #End of TF IDF - Keyword process
+                    #Start of PostgreSQL New Insertion
+                    insertNewInTable(fieldTitle,lsContentOriginal[0],lsContentTranslated[0],fieldBase64NewContent,fieldTimeStamp,fieldCommodity,fieldListOfKeyWordsOriginal,fieldListOfKeyWordsTranslated,fieldUrl,fieldSourceSite,appName)  
+                    #End of PostgreSQL New Insertion  
+                
+              
                 
 
 #SECTION - START OF COMMON METHODS
@@ -856,7 +904,6 @@ def getKeyWordsPairListFromDataFrame(dataFrame):
         lsReturn.append(strLine)
 
     return ';'.join(lsReturn)
-
 
 def insertNewInTable(fieldTitle,originalContent,translatedContent,fieldBase64NewContent,fieldTimeStamp,fieldCommodity,fieldListOfKeyWordsOriginal,fieldListOfKeyWordsTranslated,fieldUrl,fieldSourceSite,appName):
     strFields=None
@@ -923,16 +970,20 @@ def getSourceAndTranslatedText(sourceText,tgtLang):
                 lsTranslated.append(GoogleTranslator(target=tgtLang).translate(item))
             except:
                 print(f'Item : {item} couldn not be translated...continue')
-                continue    
+                continue   
+
         #Cleaning lsTranslated
         for item in lsTranslated:
             if item is None:
                 lsTranslated.remove(item)
+        global lsChar
 
-        res=[sourceContent_clean,' '.join(lsTranslated)]          
-
+        new_translated=None
+        new_translated=' '.join(lsTranslated)
+        for char in lsChar:
+            new_translated=new_translated.replace(char,' ')
             
-    return res
+    return [sourceContent_clean,new_translated]
 
 def returnChromeSettings():
     global BROWSER
@@ -999,7 +1050,7 @@ def secondWindowMechanism(lsContent,lsContentTranslated,xPathElementSecondWindow
             return res
 
 def getTitleClean(strTitle):
-    lsChar=['"',"'"]
+    global lsChar
     for char in lsChar:
         strTitle=strTitle.replace(char,' ')
     return strTitle
