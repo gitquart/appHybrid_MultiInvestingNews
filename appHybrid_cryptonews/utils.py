@@ -516,6 +516,8 @@ def readFromCryptonews():
             #If not todays' news, go to next new
             if today != str(strDate).split('T')[0]:
                 print('Current new is not from today, next...')
+                print('Slowing down a bit...') 
+                time.sleep(5) 
                 continue
             strDate=str(strDate[0:16]).replace('T',' ')
         except:
@@ -548,6 +550,9 @@ def readFromCryptonews():
             #Start of PostgreSQL New Insertion
             insertNewInTable(fieldTitle,lsContentOriginal[0],lsContentTranslated[0],fieldBase64NewContent,fieldTimeStamp,fieldCommodity,fieldListOfKeyWordsOriginal,fieldListOfKeyWordsTranslated,fieldUrl,fieldSourceSite,appName)  
             #End of PostgreSQL New Insertion
+
+        print('Slowing down a bit...') 
+        time.sleep(5)      
         
 
     #Second Section of News
@@ -566,6 +571,9 @@ def readFromCryptonews():
             today=datetime.now().strftime('%Y-%m-%d')
             #If not todays' news, go to next new
             if today != str(strDate).split('T')[0]:
+                print('Current new is not from today, next...')
+                print('Slowing down a bit...') 
+                time.sleep(5) 
                 continue
             strDate=str(strDate[0:16]).replace('T',' ')
         except:
