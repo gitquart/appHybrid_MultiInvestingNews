@@ -1,1 +1,1 @@
-worker: python3 /app/appHybrid_investopedia_trading/main.py
+worker: python3 /app/appHybrid_yahoo_market/main.py
