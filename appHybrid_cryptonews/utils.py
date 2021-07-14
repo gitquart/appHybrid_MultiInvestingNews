@@ -478,6 +478,7 @@ def readFromCryptonews():
     iam='Cryptonews'
     print(f'Starting reading {iam}...')
     BROWSER.get(dicWebSite['cryptonews'])
+    print('Browser ready...')
     #Wait for publishing to appear, they stop the reading
     time.sleep(10)
     btnLater= devuelveElemento('/html/body/div[5]/div/div/div[2]/button[2]')
