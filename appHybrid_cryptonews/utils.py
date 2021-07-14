@@ -578,6 +578,7 @@ def readFromCryptonews():
         try:
             txtDate=BROWSER.find_element_by_xpath(f'/html/body/div[2]/section[1]/div/div[{str(idx+1)}]/div/span/i/time')
             strDate=txtDate.get_attribute('datetime')
+            print(f'DateTime of current new: {strDate}')
             today=None
             today=datetime.now().strftime('%Y-%m-%d')
             #If not todays' news, go to next new
