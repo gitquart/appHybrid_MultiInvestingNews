@@ -501,6 +501,8 @@ def readFromCryptonews():
     #First Section of News
     lsFirstSection=devuelveListaElementos('/html/body/div[2]/section[1]/div/div')
     for objNew in lsFirstSection:
+        if not objNew:
+            continue
         lsContentOriginal=list()
         lsContentTranslated=list()
         idx=lsFirstSection.index(objNew)
@@ -558,6 +560,8 @@ def readFromCryptonews():
     #Second Section of News
     lsSecondSection=devuelveListaElementos('/html/body/div[2]/section[2]/div[1]/div')
     for objNew in lsSecondSection:
+        if not objNew:
+            continue
         lsContentOriginal=list()
         lsContentTranslated=list()
         idx=lsFirstSection.index(objNew)
