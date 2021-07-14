@@ -478,7 +478,6 @@ def readFromCryptonews():
     returnChromeSettings()
     iam='Cryptonews'
     print(f'Starting reading {iam}...')
-    print('Starting reading Cryptonews...')
     BROWSER.get(dicWebSite['cryptonews'])
     #Wait for publishing to appear, they stop the reading
     time.sleep(10)
