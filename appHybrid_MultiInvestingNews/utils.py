@@ -1,6 +1,5 @@
 import json
 import os
-from pickle import NONE
 from selenium import webdriver
 import chromedriver_autoinstaller
 import time
