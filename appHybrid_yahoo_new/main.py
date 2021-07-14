@@ -17,7 +17,7 @@ def main():
             tool.readFromCryptonews()
         if mainOption == 'yahoo':
             #Options : market, new
-            tool.readFromYahoo('market')
+            tool.readFromYahoo('new')
         if mainOption == 'fxnews':
             tool.readFromFXNews() 
         if mainOption == 'financiero':
