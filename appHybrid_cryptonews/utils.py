@@ -569,7 +569,7 @@ def readFromCryptonews():
         lsContentOriginal=list()
         lsContentTranslated=list()
         try:
-            idx=lsFirstSection.index(objNew)
+            idx=lsSecondSection.index(objNew)
         except:
             continue   
         #Get time
