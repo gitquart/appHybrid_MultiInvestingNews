@@ -250,6 +250,9 @@ def readFromInvesting():
         print(f'-End of page {str(page)}-')
     #When all the pages in the loop are done    
     BROWSER.quit()
+    print('All sections READY...wait for 10 mins...')
+    time.sleep(600)  
+    sys.exit(0)
 #R 
 def readFromDailyFX():
     returnChromeSettings()
