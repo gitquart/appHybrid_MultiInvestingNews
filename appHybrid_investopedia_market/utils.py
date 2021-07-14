@@ -456,7 +456,7 @@ def readFromInvestopedia(option):
             fieldUrl=hrefLink
             BROWSER.execute_script('window.open("'+hrefLink+'")','_blank')
             res=None
-            res=secondWindowMechanism(lsContentOriginal,'/html/body/main/div[2]/article/div[2]/div[1]','es')
+            res=secondWindowMechanism(lsContentOriginal,lsContentTranslated,'/html/body/main/div[2]/article/div[2]/div[1]','es')
             if not res:
                 print(f'New already in database. App: {appName}')
             else:
