@@ -500,6 +500,7 @@ def readFromCryptonews():
     fieldSourceSite=appName
     #First Section of News
     lsFirstSection=devuelveListaElementos('/html/body/div[2]/section[1]/div/div')
+    print('Section 1...')
     for objNew in lsFirstSection:
         idx=None
         lsContentOriginal=list()
@@ -560,6 +561,7 @@ def readFromCryptonews():
         
 
     #Second Section of News
+    print('Section 2...')
     lsSecondSection=devuelveListaElementos('/html/body/div[2]/section[2]/div[1]/div')
     for objNew in lsSecondSection:
         idx=None
