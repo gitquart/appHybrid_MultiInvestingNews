@@ -1034,7 +1034,7 @@ def getSourceAndTranslatedText(sourceText,tgtLang):
             try:
                 lsTranslated.append(GoogleTranslator(target=tgtLang).translate(item))
             except:
-                print(f'Item : {item} couldn not be translated...continue')
+                print(f'Item : {item} could not be translated...continue')
                 continue   
 
         #Cleaning lsTranslated
