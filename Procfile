@@ -1,1 +1,1 @@
-worker: python3 /app/appHybrid_MultiInvestingNews/main.py
+worker: python3 /app/appHybrid_cryptonews/main.py
