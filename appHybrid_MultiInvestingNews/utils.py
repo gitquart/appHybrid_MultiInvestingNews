@@ -991,9 +991,10 @@ def returnChromeSettings():
 
     if objControl.heroku:
         #Chrome configuration for heroku
-        options.binary_location=os.environ.get("GOOGLE_CHROME_BIN")
+        options.add_argument("--headless")
         options.add_argument("--disable-dev-shm-usage")
-        BROWSER=webdriver.Chrome(executable_path=os.environ.get("CHROMEDRIVER_PATH"),chrome_options=options)
+        options.binary_location=os.environ.get("GOOGLE_CHROME_BIN")
+        BROWSER=webdriver.Chrome(executable_path=os.environ.get("CHROMEDRIVER_PATH"),options=options)
     else:
         BROWSER=webdriver.Chrome(options=options)  
 
