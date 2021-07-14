@@ -18,7 +18,8 @@ from deep_translator import GoogleTranslator
 from selenium.webdriver.common.keys import Keys
 import base64
 from datetime import date, datetime, timedelta
-import postgresql as bd
+import postgresql as 
+import sys
 
 
 BROWSER=''
@@ -623,7 +624,9 @@ def readFromCryptonews():
     #End of all sections        
     BROWSER.quit()  
     print('All sections READY...wait for 10 mins...')
-    time.sleep(600)      
+    time.sleep(600)  
+    sys.exit(0)
+        
 
 #R
 def readFromYahoo(option):
