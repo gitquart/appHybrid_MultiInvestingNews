@@ -609,9 +609,11 @@ def readFromCryptonews():
         
         print('Slowing down a bit...') 
         time.sleep(5)   
-
+    
     #End of all sections        
-    BROWSER.quit()        
+    BROWSER.quit()  
+    print('All sections READY...wait for 10 mins...')
+    time.sleep(600)      
 
 #R
 def readFromYahoo(option):
