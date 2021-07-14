@@ -28,6 +28,8 @@ nltk.download('stopwords')
 #Start of Common items
 lsStopWord_English = set(stopwords.words('english'))
 lsStopWord_Spanish= set(stopwords.words('spanish'))
+print(f'Size of english stopwords: {str(len(lsStopWord_English))}')
+print(f'Size of spanish stopwords: {str(len(lsStopWord_Spanish))}')
 lsMyStopWords=['reuters','by','com','u','s','have','has','said','the','are','his','her','would','say','marketwatch',
                    'since','could','newsletters','nwe2050','nowbrokerstoolseconomic','comworldamericasperuscastilloleadselectionwith501votesafterallballotstallied20210615',
                    'etfsnysesiljsilxsinv','oilprice','ev','gm','also']
@@ -87,7 +89,8 @@ lsChar=['"',"'"]
 #R      
 def readFromInvesting():
     returnChromeSettings()
-    print('Starting reading Investing...')
+    iam='Investing.com'
+    print(f'Starting reading {iam}...')
     time.sleep(4)
     for page in range(1,5):
         BROWSER.get(dicWebSite['investing']+'/'+str(page))
@@ -123,7 +126,7 @@ def readFromInvesting():
             fieldTitle=None
             fieldUrl=None
             fieldSourceSite=None
-            appName='Investing.com'
+            appName=iam
             #End -  PostgreSQL Fields
             time.sleep(4)
             #For source: Those from "lsSource" list have "span", the rest have "div"
@@ -248,7 +251,8 @@ def readFromInvesting():
 #R 
 def readFromDailyFX():
     returnChromeSettings()
-    print('Starting reading dailyfx...')
+    iam='DailyFx'
+    print(f'Starting reading {iam}...')
     for page in range(1,4):
         BROWSER.get(dicWebSite['dailyfx']+'/'+str(page))
         time.sleep(3)
@@ -267,7 +271,7 @@ def readFromDailyFX():
             fieldTitle=None
             fieldUrl=None
             fieldSourceSite=None
-            appName='DailyFX'
+            appName=iam
             fieldSourceSite=appName
             #End -  PostgreSQL Fields
             #Start local variables
@@ -319,7 +323,8 @@ def readFromDailyFX():
 #R
 def readFromInvestopedia(option):
     returnChromeSettings()
-    print('Starting reading Investopedia...')
+    iam=f'Investopedia {option}'
+    print(f'Starting reading {iam}...')
     time.sleep(4)
     if option=='market':
         BROWSER.get(dicWebSite['investopedia_market'])
@@ -339,7 +344,7 @@ def readFromInvestopedia(option):
     fieldTimeStamp=None
     appName=None
     #End -  PostgreSQL Fields  
-    appName=f'Investopedia {option}'
+    appName=iam
     fieldSourceSite=appName
     #Investopedia, for Market & trading , news don't have DATE or TIME, hence add current DateTime
     today=None
@@ -471,6 +476,8 @@ def readFromInvestopedia(option):
 #R    
 def readFromCryptonews():
     returnChromeSettings()
+    iam='Cryptonews'
+    print(f'Starting reading {iam}...')
     print('Starting reading Cryptonews...')
     BROWSER.get(dicWebSite['cryptonews'])
     #Wait for publishing to appear, they stop the reading
@@ -492,7 +499,7 @@ def readFromCryptonews():
     fieldTimeStamp=None
     appName=None
     #End -  PostgreSQL Fields  
-    appName='Cryptonews'
+    appName=iam
     fieldSourceSite=appName
     #First Section of News
     lsFirstSection=devuelveListaElementos('/html/body/div[2]/section[1]/div/div')
@@ -599,7 +606,8 @@ def readFromCryptonews():
 #R
 def readFromYahoo(option):
     returnChromeSettings()
-    print('Starting reading Yahoo...')
+    iam=f'Yahoo {option}'
+    print(f'Starting reading {iam}...')
     time.sleep(4)
     strPathMainSection=None
     strWebSite=None
@@ -639,7 +647,7 @@ def readFromYahoo(option):
     fieldTimeStamp=None
     appName=None
     #End -  PostgreSQL Fields  
-    appName=f'Yahoo {option}'
+    appName=iam
     fieldSourceSite=appName                                    
     lsMainSection=devuelveListaElementos(strPathMainSection)
     for objNew in lsMainSection:
@@ -714,7 +722,8 @@ def readFromYahoo(option):
 #R              
 def readFromFXNews():
     returnChromeSettings()
-    print('Starting reading Fxstreet...')
+    iam='FXNews'
+    print(f'Starting reading {iam}...')
     BROWSER.get(dicWebSite['fxstreet'])
     lsMonth=['jan','feb','mar','apr','may','jun','jul','aug','sep','oct','nov','dic']
     for page in range(1,7):
@@ -735,7 +744,7 @@ def readFromFXNews():
         fieldTimeStamp=None
         appName=None
         #End -  PostgreSQL Fields  
-        appName='FXNews'
+        appName=iam
         fieldSourceSite=appName
         #Main section of News
         lsMainSection=devuelveListaElementos('/html/body/div[4]/div[2]/div/div/div/main/div/div[2]/div[1]/div/div[2]/div/div[2]/section/div/div/div/main/div/div')
@@ -827,7 +836,8 @@ def readFromFXNews():
 #R       
 def readFromElFinanciero():
     returnChromeSettings()
-    print('Starting reading Financiero...')
+    iam='El financiero'
+    print(f'Starting reading {iam}...')
     BROWSER.get(dicWebSite['financiero'])
     strDivNews='list-container layout-section'
     global fieldTimeStamp,fieldBase64NewContent,fieldCommodity,fieldListOfKeyWordsOriginal
@@ -843,7 +853,7 @@ def readFromElFinanciero():
     fieldTimeStamp=None
     appName=None
     #End -  PostgreSQL Fields  
-    appName='El financiero'
+    appName=iam
     fieldSourceSite=appName
     lsNewSection=devuelveListaElementos('/html/body/div[1]/section/div/div[2]/aside/div')
     for div in lsNewSection:
