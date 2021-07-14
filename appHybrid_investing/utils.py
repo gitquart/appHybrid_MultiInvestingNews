@@ -752,7 +752,12 @@ def readFromYahoo(option):
             #End of TF IDF - Keyword process
             #Start of PostgreSQL New Insertion
             insertNewInTable(fieldTitle,lsContentOriginal[0],lsContentTranslated[0],fieldBase64NewContent,fieldTimeStamp,fieldCommodity,fieldListOfKeyWordsOriginal,fieldListOfKeyWordsTranslated,fieldUrl,fieldSourceSite,appName)  
-            #End of PostgreSQL New Insertion
+            #End of PostgreSQL New 
+    
+    BROWSER.quit()        
+    print('All sections READY...wait for 10 mins...')
+    time.sleep(600)  
+    sys.exit(0)        
 
 #R              
 def readFromFXNews():
@@ -868,6 +873,10 @@ def readFromFXNews():
         linkNext=devuelveElemento('/html/body/div[4]/div[2]/div/div/div/main/div/div[2]/div[1]/div/div[2]/div/div[2]/section/div/div/div/section[2]/div/ul/li[9]/a') 
         BROWSER.execute_script('arguments[0].click();',linkNext)  
 
+    BROWSER.quit() 
+    print('All sections READY...wait for 10 mins...')
+    time.sleep(600)  
+    sys.exit(0)       
 #R       
 def readFromElFinanciero():
     returnChromeSettings()
@@ -934,7 +943,12 @@ def readFromElFinanciero():
                     #End of TF IDF - Keyword process
                     #Start of PostgreSQL New Insertion
                     insertNewInTable(fieldTitle,lsContentOriginal[0],lsContentTranslated[0],fieldBase64NewContent,fieldTimeStamp,fieldCommodity,fieldListOfKeyWordsOriginal,fieldListOfKeyWordsTranslated,fieldUrl,fieldSourceSite,appName)  
-                    #End of PostgreSQL New Insertion  
+                    #End of PostgreSQL New Insertion 
+                    
+    BROWSER.quit() 
+    print('All sections READY...wait for 10 mins...')
+    time.sleep(600)  
+    sys.exit(0)       
                 
               
                 
