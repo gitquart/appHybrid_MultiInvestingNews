@@ -484,6 +484,7 @@ def readFromCryptonews():
     if btnLater:
         btnLater.click()
     BROWSER.switch_to.default_content()
+    print('Reading the main window...')
     global fieldTimeStamp,fieldBase64NewContent,fieldCommodity,fieldListOfKeyWordsOriginal
     global fieldListOfKeyWordsTranslated,fieldTitle,fieldUrl,fieldSourceSite,appName  
     #Start - PostgreSQL fields
@@ -511,10 +512,12 @@ def readFromCryptonews():
         try:
             txtDate=BROWSER.find_element_by_xpath(f'/html/body/div[2]/section[1]/div/div[{str(idx+1)}]/div/span/i/time')
             strDate=txtDate.get_attribute('datetime')
+            print(f'DateTime of current new: {strDate}')
             today=None
             today=datetime.now().strftime('%Y-%m-%d')
             #If not todays' news, go to next new
             if today != str(strDate).split('T')[0]:
+                print('Current new is not from today, next...')
                 continue
             strDate=str(strDate[0:16]).replace('T',' ')
         except:
@@ -943,7 +946,6 @@ def getCommodity(titleInLowerCase,dicToSearch):
 def getSourceAndTranslatedText(sourceText,tgtLang):
     #getSourceAndTranslatedText returns both (original and translated text) clean.
     global fieldBase64NewContent
-    res=False
     sbytes=None
     lsRes=None
     lsTranslated=list()
