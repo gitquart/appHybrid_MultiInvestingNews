@@ -944,6 +944,7 @@ def getCommodity(titleInLowerCase,dicToSearch):
 def getSourceAndTranslatedText(sourceText,tgtLang):
     #getSourceAndTranslatedText returns both (original and translated text) clean.
     global fieldBase64NewContent,lsChar
+    result=None
     new_translated=None
     sbytes=None
     lsRes=None
@@ -995,7 +996,11 @@ def getSourceAndTranslatedText(sourceText,tgtLang):
         for char in lsChar:
             new_translated=new_translated.replace(char,' ')
             
-    return [sourceContent_clean,new_translated]
+        result= [sourceContent_clean,new_translated]
+    else:
+        result=False  
+
+    return result      
 
 def returnChromeSettings():
     global BROWSER
