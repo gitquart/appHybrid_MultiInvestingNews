@@ -324,6 +324,9 @@ def readFromDailyFX():
         print(f'End of page {str(page)}')  
         
     BROWSER.quit()
+    print('All sections READY...wait for 10 mins...')
+    time.sleep(600)  
+    sys.exit(0)
 
 #R
 def readFromInvestopedia(option):
