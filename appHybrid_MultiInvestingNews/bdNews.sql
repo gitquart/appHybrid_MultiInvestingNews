@@ -43,7 +43,7 @@ CREATE TABLE tbNew (
         appName varchar(20)
 );
 
-select * from tbNew;
+select * from tbNew limit 10 offset 5;
 
 delete from tbnew where id=24;
 
