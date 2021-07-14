@@ -87,6 +87,7 @@ lsChar=['"',"'"]
 #R      
 def readFromInvesting():
     returnChromeSettings()
+    print('Starting reading Investing...')
     time.sleep(4)
     for page in range(1,5):
         BROWSER.get(dicWebSite['investing']+'/'+str(page))
@@ -247,6 +248,7 @@ def readFromInvesting():
 #R 
 def readFromDailyFX():
     returnChromeSettings()
+    print('Starting reading dailyfx...')
     for page in range(1,4):
         BROWSER.get(dicWebSite['dailyfx']+'/'+str(page))
         time.sleep(3)
@@ -317,6 +319,7 @@ def readFromDailyFX():
 #R
 def readFromInvestopedia(option):
     returnChromeSettings()
+    print('Starting reading Investopedia...')
     time.sleep(4)
     if option=='market':
         BROWSER.get(dicWebSite['investopedia_market'])
@@ -468,6 +471,7 @@ def readFromInvestopedia(option):
 #R    
 def readFromCryptonews():
     returnChromeSettings()
+    print('Starting reading Cryptonews...')
     BROWSER.get(dicWebSite['cryptonews'])
     #Wait for publishing to appear, they stop the reading
     time.sleep(10)
@@ -595,6 +599,7 @@ def readFromCryptonews():
 #R
 def readFromYahoo(option):
     returnChromeSettings()
+    print('Starting reading Yahoo...')
     time.sleep(4)
     strPathMainSection=None
     strWebSite=None
@@ -709,6 +714,7 @@ def readFromYahoo(option):
 #R              
 def readFromFXNews():
     returnChromeSettings()
+    print('Starting reading Fxstreet...')
     BROWSER.get(dicWebSite['fxstreet'])
     lsMonth=['jan','feb','mar','apr','may','jun','jul','aug','sep','oct','nov','dic']
     for page in range(1,7):
@@ -821,6 +827,7 @@ def readFromFXNews():
 #R       
 def readFromElFinanciero():
     returnChromeSettings()
+    print('Starting reading Financiero...')
     BROWSER.get(dicWebSite['financiero'])
     strDivNews='list-container layout-section'
     global fieldTimeStamp,fieldBase64NewContent,fieldCommodity,fieldListOfKeyWordsOriginal
