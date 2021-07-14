@@ -1004,14 +1004,14 @@ def returnChromeSettings():
     global BROWSER
     chromedriver_autoinstaller.install()
     options = Options()
-    options.add_argument("--no-sandbox")
-
     if objControl.heroku:
-        #Chrome configuration for heroku
+        #START-REQUIRED FOR HEROKU
+        options.add_argument("--no-sandbox")
         options.add_argument("--headless")
         options.add_argument("--disable-dev-shm-usage")
         options.binary_location=os.environ.get("GOOGLE_CHROME_BIN")
         BROWSER=webdriver.Chrome(executable_path=os.environ.get("CHROMEDRIVER_PATH"),options=options)
+        #END-REQUIRED FOR HEROKU
     else:
         BROWSER=webdriver.Chrome(options=options)  
 
