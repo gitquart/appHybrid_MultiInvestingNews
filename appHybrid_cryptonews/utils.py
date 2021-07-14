@@ -18,7 +18,7 @@ from deep_translator import GoogleTranslator
 from selenium.webdriver.common.keys import Keys
 import base64
 from datetime import date, datetime, timedelta
-import postgresql as 
+import postgresql as bd 
 import sys
 
 
