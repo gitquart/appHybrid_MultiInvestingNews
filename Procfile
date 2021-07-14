@@ -1,1 +1,1 @@
-worker: python3 /app/appHybrid_dailyfx/main.py
+worker: python3 /app/appHybrid_investopedia_market/main.py
