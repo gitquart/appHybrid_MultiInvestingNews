@@ -598,6 +598,9 @@ def readFromCryptonews():
             #Start of PostgreSQL New Insertion
             insertNewInTable(fieldTitle,lsContentOriginal[0],lsContentTranslated[0],fieldBase64NewContent,fieldTimeStamp,fieldCommodity,fieldListOfKeyWordsOriginal,fieldListOfKeyWordsTranslated,fieldUrl,fieldSourceSite,appName)  
             #End of PostgreSQL New Insertion  
+        
+        print('Slowing down a bit...') 
+        time.sleep(5)   
 
     #End of all sections        
     BROWSER.quit()        
