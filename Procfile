@@ -1,1 +1,1 @@
-worker: python3 /app/appHybrid_fxnews/main.py
+worker: python3 /app/appHybrid_financiero/main.py
