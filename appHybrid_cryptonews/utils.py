@@ -481,11 +481,6 @@ def readFromCryptonews():
     print('Browser ready...')
     #Wait for publishing to appear, they stop the reading
     time.sleep(10)
-    """
-    btnLater= devuelveElemento('/html/body/div[5]/div/div/div[2]/button[2]')
-    if btnLater:
-        btnLater.click()
-    """    
     BROWSER.switch_to.default_content()
     print('Reading the main window...')
     global fieldTimeStamp,fieldBase64NewContent,fieldCommodity,fieldListOfKeyWordsOriginal
