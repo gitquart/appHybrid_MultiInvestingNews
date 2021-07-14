@@ -25,6 +25,7 @@ BROWSER=''
 formatTimeForPostgreSQL='%Y-%m-%d %H:%M'
 objControl=cInternalControl()
 nltk.download('stopwords')
+nltk.download('punkt')
 #Start of Common items
 lsStopWord_English = set(stopwords.words('english'))
 lsStopWord_Spanish= set(stopwords.words('spanish'))
