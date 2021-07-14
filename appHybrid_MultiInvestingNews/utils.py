@@ -988,15 +988,6 @@ def returnChromeSettings():
     chromedriver_autoinstaller.install()
     options = Options()
     options.add_argument("--no-sandbox")
-    
-    prefs = {
-      #"translate_whitelists": {"es":"en"},
-      #"translate":{"enabled":"true"}
-     }
-    
-    
-
-    options.add_experimental_option("prefs", prefs)
 
     if objControl.heroku:
         #Chrome configuration for heroku
