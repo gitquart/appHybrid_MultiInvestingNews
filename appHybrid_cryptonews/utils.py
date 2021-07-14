@@ -943,7 +943,8 @@ def getCommodity(titleInLowerCase,dicToSearch):
                    
 def getSourceAndTranslatedText(sourceText,tgtLang):
     #getSourceAndTranslatedText returns both (original and translated text) clean.
-    global fieldBase64NewContent
+    global fieldBase64NewContent,lsChar
+    new_translated=None
     sbytes=None
     lsRes=None
     lsTranslated=list()
@@ -989,9 +990,7 @@ def getSourceAndTranslatedText(sourceText,tgtLang):
         for item in lsTranslated:
             if item is None:
                 lsTranslated.remove(item)
-        global lsChar
-
-        new_translated=None
+        
         new_translated=' '.join(lsTranslated)
         for char in lsChar:
             new_translated=new_translated.replace(char,' ')
