@@ -60,6 +60,10 @@ Build packs
 heroku/python
 https://github.com/heroku/heroku-buildpack-google-chrome
 https://github.com/heroku/heroku-buildpack-chromedriver
+
+To execute tradingAppControl.bat:
+
+Open it in terminal line "tradingAppControl 1" or "tradingAppControl 0", 1 for turning on all services and 0 for shutting them off.
     
 
 
